@@ -2,24 +2,45 @@ import { useState } from 'react'; // keep track of state
 import { useNavigate } from 'react-router-dom'; // manual redirecting
 import '../styles/Login.css';
 
-export default function Login () {
-  // state keeps data about the component which always changes
-  const [credentials, setCredentials] = useState({ username: '', password: '' }); // username and password are always changing as the user is typing in the input Fields
+
+export default function Login() {
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+
     try {
-      // Authentication logic (will connect to Django backend)
-      const response = await fakeAuth(credentials);
-      if (response.success) {
-        navigate('/dashboard');
+      const response = await fetch('http://localhost:8000/filesharing/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Login successful! Redirecting...');
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        setTimeout(() => navigate('/dashboard'), 1200);
       } else {
-        setError('Invalid credentials');
+        setError(data.errors?.non_field_errors?.[0] || 
+                data.message || 
+                'Invalid username or password');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,16 +54,27 @@ export default function Login () {
         </div>
         
         <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message">{error}</div>}
+          {error && (
+            <div className="alert-error">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="alert-success">
+              {success}
+            </div>
+          )}
           
           <div className="form-group">
-            <label htmlFor="username">Username</label> {/* we don't use for attribute in react. for is a reserved word*/}
+            <label htmlFor="username">Username</label>
             <input
               type="text"
               id="username"
               value={credentials.username}
-              onChange={(e) => setCredentials({...credentials, username: e.target.value})} // ... updates the object
+              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
               required
+              disabled={isLoading}
             />
           </div>
           
@@ -52,12 +84,19 @@ export default function Login () {
               type="password"
               id="password"
               value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})} // ... updates the object
+              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
               required
+              disabled={isLoading}
             />
           </div>
           
-          <button type="submit" className="login-button">Log In</button>
+          <button 
+            type="submit" 
+            className={`login-button ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading}
+          >
+            {isLoading ? '' : 'Log In'}
+          </button>
         </form>
         
         <div className="login-footer">
@@ -66,14 +105,7 @@ export default function Login () {
       </div>
     </div>
   );
-};
+}
 
-// Temporary mock authentication
-const fakeAuth = async (credentials) => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ success: true }); // In real app, this would call your Django backend
-    }, 500);
-  });
-};
+
 
