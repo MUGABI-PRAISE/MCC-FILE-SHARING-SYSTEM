@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react'; // keep track of state
+import { useNavigate } from 'react-router-dom'; // manual redirecting
 import '../styles/Login.css';
 
 export default function Login () {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  // state keeps data about the component which always changes
+  const [credentials, setCredentials] = useState({ username: '', password: '' }); // username and password are always changing as the user is typing in the input Fields
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -35,12 +36,12 @@ export default function Login () {
           {error && <div className="error-message">{error}</div>}
           
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Username</label> {/* we don't use for attribute in react. for is a reserved word*/}
             <input
               type="text"
               id="username"
               value={credentials.username}
-              onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+              onChange={(e) => setCredentials({...credentials, username: e.target.value})} // ... updates the object
               required
             />
           </div>
@@ -51,7 +52,7 @@ export default function Login () {
               type="password"
               id="password"
               value={credentials.password}
-              onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+              onChange={(e) => setCredentials({...credentials, password: e.target.value})} // ... updates the object
               required
             />
           </div>
