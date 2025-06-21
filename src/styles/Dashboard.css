@@ -416,3 +416,140 @@
     align-items: flex-start;
   }
 }
+/* Add these new styles to your existing Dashboard.css */
+
+/* Badge styles */
+.new-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  z-index: 2;
+}
+
+.unread-badge {
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  margin-left: 5px;
+}
+
+/* Quick actions container */
+.quick-actions-container {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  margin-top: 2rem;
+}
+
+/* Remove storage metrics styles */
+.storage-metrics {
+  display: none;
+}
+
+/* Enhance file card hover effect */
+.file-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Improve tab styling */
+.dashboard-tabs button {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.dashboard-tabs button.active {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .dashboard-tabs button {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .new-badge {
+    top: 5px;
+    right: 5px;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+}
+
+/* Message styles */
+.file-message {
+  background-color: rgba(240, 240, 240, 0.9);
+  border-left: 3px solid var(--secondary-color);
+  padding: 8px 12px;
+  margin-top: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.file-message:hover {
+  background-color: rgba(230, 230, 230, 0.9);
+}
+
+.message-preview {
+  font-size: 0.8rem;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-message.expanded .message-preview {
+  white-space: normal;
+}
+
+.toggle-message {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  font-size: 0.7rem;
+  color: var(--secondary-color);
+}
+
+/* Enhance badge styling */
+.new-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.new-badge::before {
+  content: "✉";
+  margin-right: 4px;
+  font-size: 0.8rem;
+}

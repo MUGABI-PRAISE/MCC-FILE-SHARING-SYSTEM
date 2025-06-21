@@ -1,0 +1,108 @@
+/* Main Container */
+.rich-text-editor-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    background: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Editor Header */
+  .editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+    color: white;
+  }
+  
+  .editor-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+  
+  .editor-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+  
+  .editor-action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .save-btn {
+    background: white;
+    color: #000DFF;
+  }
+  
+  .save-btn:hover {
+    background: #f0f0f0;
+  }
+  
+  .preview-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .preview-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Quill Editor Styling */
+  .rich-text-editor {
+    border: none !important;
+    height: 500px;
+  }
+  
+  .ql-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #eee !important;
+    padding: 0.75rem 1.5rem !important;
+  }
+  
+  .ql-container {
+    border: none !important;
+    font-size: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .ql-editor {
+    min-height: 400px;
+    line-height: 1.6;
+    color: #333;
+  }
+  
+  .ql-editor.ql-blank::before {
+    color: #999;
+    font-style: normal;
+    font-size: 0.95rem;
+  }
+  
+  /* Editor Footer */
+  .editor-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  .word-count::before {
+    content: "✍️ ";
+  }
+  
+  .char-count::before {
+    content: "🔠 ";
+  }

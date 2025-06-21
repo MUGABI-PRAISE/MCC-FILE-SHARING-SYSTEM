@@ -1,0 +1,11 @@
+notes and things to do in the future
+1. note the behavior of most form fields. 
+when typing you are changing state. (onChange event listens to every keystroke)
+after typing, you must set their value to the final state.
+
+where as the buttons and forms normally call functions. 
+
+FUTURE WORK.
+1. allow multiple selection of fields
+2. allow othe text area for typing the message to expand with teh text. then when
+it reaches like 7 rows, it will scroll.

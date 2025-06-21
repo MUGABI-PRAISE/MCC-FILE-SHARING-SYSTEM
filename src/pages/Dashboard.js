@@ -1,163 +1,81 @@
 import { useState } from 'react';
 import '../styles/Dashboard.css';
+import FileModal from '../components/FileModal';
+import FileSender from '../components/FileSender'; // responsible for the file sending process
+import NotificationBanner from '../components/NotificationBanner';
+import DashboardHeader from '../components/DashboardHeader';
+import DashboardTabs from '../components/DashboardTabs';
+import SelectedActions from '../components/SelectedActions';
+import QuickActions from '../components/QuickActions';
+import FilesGrid from '../components/FilesGrid';
 
-export default function Dashboard() {
+export default function Dashboard({ offices }) {
+  const [showFileSender, setShowFileSender] = useState(false); // trigger the file sender to be shown when send file button is clicked.
+  const [selectedFile, setSelectedFile] = useState(null);
   const [activeTab, setActiveTab] = useState('recent');
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploadProgress, setUploadProgress] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [unreadCount, setUnreadCount] = useState();
+  const [expandedMessages, setExpandedMessages] = useState({});
 
-  // Mock data - replace with your actual data
-  const recentFiles = [
-    { id: '1', name: 'Quarterly_Report_2023.pdf', type: 'pdf', size: '2.4 MB', sharedBy: 'Finance Dept', date: '2 hours ago' },
-    { id: '2', name: 'Budget_Approval.docx', type: 'doc', size: '1.1 MB', sharedBy: 'Planning Office', date: '1 day ago' },
-    { id: '3', name: 'Staff_Meeting_Minutes.pdf', type: 'pdf', size: '3.2 MB', sharedBy: 'HR Department', date: '3 days ago' },
-    { id: '4', name: 'Project_Proposal.pptx', type: 'ppt', size: '5.7 MB', sharedBy: 'Engineering', date: '1 week ago' },
-  ];
 
-  const myFiles = [
-    { id: '5', name: 'Personal_Notes.txt', type: 'txt', size: '12 KB', date: 'Yesterday' },
-    { id: '6', name: 'Presentation_Slides.pptx', type: 'ppt', size: '8.2 MB', date: 'Last week' },
-  ];
-
-  const handleFileSelect = (fileId) => {
-    setSelectedFiles(prev => 
-      prev.includes(fileId) 
-        ? prev.filter(id => id !== fileId) 
-        : [...prev, fileId]
-    );
+  const handleSendComplete = (sentFile) => {
+    alert('File sent:', sentFile);
   };
 
-  const handleUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileClick = (file) => {
+    setSelectedFile(file);
+  };
 
-    // Mock upload progress
-    setUploadProgress(0);
-    setNotification(null);
-    
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev === null) return 0;
-        const newProgress = prev + Math.random() * 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setNotification({ type: 'success', message: `${file.name} uploaded successfully!` });
-          setTimeout(() => setNotification(null), 3000);
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 300);
+  const closeModal = () => {
+    setSelectedFile(null);
+  };
 
-    // In real app, you would actually upload the file here
+  const recentFiles = [
+    { id: '1', name: 'Quarterly_Report_2023.pdf', type: 'pdf', size: '2.4 MB', sharedBy: 'Finance Dept', date: '2 hours ago', isNew: true, message: 'Please review the Q3 financials before the meeting tomorrow lorem...' },
+    { id: '2', name: 'Budget_Approval.docx', type: 'doc', size: '1.1 MB', sharedBy: 'Planning Office', date: '1 day ago', isNew: true, message: 'Final budget approval for the new project' },
+    { id: '3', name: 'Staff_Meeting_Minutes.pdf', type: 'pdf', size: '3.2 MB', sharedBy: 'HR Department', date: '3 days ago', isNew: true, message: "Minutes from last week's all-hands meeting" },
+    { id: '4', name: 'Project_Proposal.pptx', type: 'ppt', size: '5.7 MB', sharedBy: 'Engineering', date: '1 week ago', isNew: true, message: 'Initial proposal for the new infrastructure project' }
+  ];
+
+  const receivedFiles = [...recentFiles, { id: '5', name: 'Personal_Notes.txt', type: 'txt', size: '12 KB', date: 'Yesterday', isNew: false, message: 'Quick notes from the client call' }, { id: '6', name: 'Presentation_Slides.pptx', type: 'ppt', size: '8.2 MB', date: 'Last week', isNew: false }].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const sentFiles = [
+    { id: '7', name: 'Annual_Report.pdf', type: 'pdf', size: '3.8 MB', date: 'Today', message: 'Annual financial report for 2023' },
+    { id: '8', name: 'Project_Update.docx', type: 'doc', size: '2.1 MB', date: '2 days ago', message: 'Weekly update on the marketing campaign progress' },
+    { id: '9', name: 'Meeting_Invite.pptx', type: 'ppt', size: '1.5 MB', date: '1 week ago' }
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const handleFileSelect = (fileId, isNew) => {
+    setSelectedFiles(prev => prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]);
+    if (isNew) setUnreadCount(prev => prev - 1);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'received') setUnreadCount(0);
+  };
+
+  const toggleMessage = (fileId) => {
+    setExpandedMessages(prev => ({ ...prev, [fileId]: !prev[fileId] }));
   };
 
   return (
     <div className="dashboard-container">
-      {notification && (
-        <div className={`dashboard-notification ${notification.type}`}>
-          {notification.message}
+      <NotificationBanner notification={notification} />
+      <DashboardHeader   onSendFile={() => setShowFileSender(true)} />
+      {showFileSender && (
+        <div className="modal-overlay">
+          <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
+            
         </div>
       )}
-
-      <div className="dashboard-header">
-        <h1>File Sharing Dashboard</h1>
-        <div className="upload-area">
-          <label className="upload-button">
-            <input type="file" onChange={handleUpload} style={{ display: 'none' }} />
-            <span>+ Upload File</span>
-          </label>
-          {uploadProgress !== null && (
-            <div className="upload-progress">
-              <div 
-                className="progress-bar" 
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-              <span>{Math.round(uploadProgress)}%</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="dashboard-tabs">
-        <button 
-          className={activeTab === 'recent' ? 'active' : ''}
-          onClick={() => setActiveTab('recent')}
-        >
-          Recently Shared
-        </button>
-        <button 
-          className={activeTab === 'myfiles' ? 'active' : ''}
-          onClick={() => setActiveTab('myfiles')}
-        >
-          My Files
-        </button>
-        <button 
-          className={activeTab === 'shared' ? 'active' : ''}
-          onClick={() => setActiveTab('shared')}
-        >
-          Shared With Me
-        </button>
-      </div>
-
-      <div className="file-actions">
-        {selectedFiles.length > 0 && (
-          <>
-            <button className="action-button download">
-              Download Selected ({selectedFiles.length})
-            </button>
-            <button className="action-button share">
-              Share Selected
-            </button>
-            <button className="action-button delete">
-              Delete Selected
-            </button>
-          </>
-        )}
-      </div>
-
-      <div className="files-grid">
-        {(activeTab === 'recent' ? recentFiles : myFiles).map(file => (
-          <div 
-            key={file.id} 
-            className={`file-card ${selectedFiles.includes(file.id) ? 'selected' : ''}`}
-            onClick={() => handleFileSelect(file.id)}
-          >
-            <div className="file-icon">
-              {file.type === 'pdf' && <span className="pdf">PDF</span>}
-              {file.type === 'doc' && <span className="doc">DOC</span>}
-              {file.type === 'ppt' && <span className="ppt">PPT</span>}
-              {file.type === 'txt' && <span className="txt">TXT</span>}
-            </div>
-            <div className="file-info">
-              <h3>{file.name}</h3>
-              <p>{file.size}</p>
-              {file.sharedBy && <p className="shared-by">Shared by: {file.sharedBy}</p>}
-              <p className="file-date">{file.date}</p>
-            </div>
-            <div className="file-options">
-              <button className="option-button download">↓</button>
-              <button className="option-button share">↗</button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="storage-metrics">
-        <div className="storage-info">
-          <h3>Storage Usage</h3>
-          <div className="storage-bar">
-            <div className="storage-used" style={{ width: '65%' }}></div>
-          </div>
-          <p>4.2 GB of 10 GB used</p>
-        </div>
-        <div className="quick-actions">
-          <h3>Quick Actions</h3>
-          <button className="quick-button new-folder">+ New Folder</button>
-          <button className="quick-button scan-docs">Scan Documents</button>
-        </div>
-      </div>
+      <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
+      <SelectedActions selectedFiles={selectedFiles} />
+      <FilesGrid activeTab={activeTab} recentFiles={recentFiles} receivedFiles={receivedFiles} sentFiles={sentFiles} selectedFiles={selectedFiles} expandedMessages={expandedMessages} onFileClick={handleFileClick} onToggleMessage={toggleMessage} />
+      <QuickActions />
+      {selectedFile && <FileModal file={selectedFile} onClose={closeModal} />}
+      
     </div>
   );
 }

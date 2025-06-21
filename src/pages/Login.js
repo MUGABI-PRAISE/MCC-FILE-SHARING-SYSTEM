@@ -1,13 +1,15 @@
 import { useState } from 'react'; // keep track of state
 import { useNavigate } from 'react-router-dom'; // manual redirecting
 import '../styles/Login.css';
-
+import LoginSuccessAnimation from '../components/LoginSuccessAnimation';
 
 export default function Login() {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  //states: very important...
+  const [loginSuccess, setLoginSuccess] = useState(false); // login animation
+  const [credentials, setCredentials] = useState({ username: '', password: '' }); // loggin in
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // when the login is in progress
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,23 +18,24 @@ export default function Login() {
     setSuccess('');
     setIsLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:8000/filesharing/login/', {
+    try { // async functions should be wrapped in try/catch
+      const response = await fetch('http://localhost:8000/filesharing/login/', { // await halts the execution of the function, but javascript continues executing. this will be executed later
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', // tell the server that we're sending json
         },
         body: JSON.stringify(credentials),
-      });
+      }); // notice that we are still in fetch method
 
-      const data = await response.json();
+      const data = await response.json(); // await halts the execution of the function, but javascript continues executing. this will be executed later
 
       if (response.ok) {
         setSuccess('Login successful! Redirecting...');
-        localStorage.setItem('accessToken', data.access);
-        localStorage.setItem('refreshToken', data.refresh);
-        setTimeout(() => navigate('/dashboard'), 1200);
+        localStorage.setItem('accessToken', data.access); // store in local storage
+        localStorage.setItem('refreshToken', data.refresh); // store in local storage
+        setLoginSuccess(true); // trigger animation
       } else {
+        // handle errors gracefully
         setError(data.errors?.non_field_errors?.[0] || 
                 data.message || 
                 'Invalid username or password');
@@ -44,11 +47,19 @@ export default function Login() {
     }
   };
 
+  // display animation on successful login
+  if (loginSuccess) {
+    return (
+      // navigate to dashboard after animation is complete. (thus a callback function is needed)
+      <LoginSuccessAnimation onComplete={() => navigate('/dashboard')} />
+    );
+  }
+
   return (
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <img src="/mcc-logo.png" alt="Mbarara City Council" className="logo" />
+          <img src="/logo.png"  alt="Mbarara City Council" className="logo" />
           <h1>MCC File Sharing System</h1>
           <p>Secure document transfer between offices</p>
         </div>

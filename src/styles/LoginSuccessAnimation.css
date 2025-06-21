@@ -1,0 +1,33 @@
+.login-success-container {
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    height: 150px;
+    overflow: hidden;
+  }
+  
+  .rocket-animation {
+    position: absolute;
+    top: 80px;
+    left: -60px;
+    font-size: 2rem;
+    animation: flyRocket 2s ease-in forwards;
+  }
+  
+  @keyframes flyRocket {
+    0% {
+      left: -60px;
+      transform: translateX(0) scale(1);
+    }
+    30% {
+      transform: translateX(100px) scale(1.1);
+    }
+    60% {
+      transform: translateX(250px) scale(1.2);
+    }
+    100% {
+      left: 100%;
+      transform: translateX(0) scale(1.3);
+    }
+  }
+  

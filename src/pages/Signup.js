@@ -321,7 +321,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 import Toast from '../components/Toast';
 
-export default function Signup() {
+export default function Signup({offices}) {
   const [formData, setFormData] = useState({
     username: '',
     first_name: '',
@@ -336,7 +336,7 @@ export default function Signup() {
     office: ''
   });
 
-  const [offices, setOffices] = useState([]);
+  // const [offices, setOffices] = useState([]);
   const [toast, setToast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
@@ -351,20 +351,20 @@ export default function Signup() {
   };
 
   // Fetch offices on mount
-  useEffect(() => {
-    async function fetchOffices() {
-      try {
-        const res = await fetch('http://localhost:8000/filesharing/offices/');
-        const data = await res.json();
-        setOffices(data);
-      } catch (err) {
-        console.error('Failed to load offices', err);
-        showToast('Failed to load office list', 'error');
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchOffices() {
+  //     try {
+  //       const res = await fetch('http://localhost:8000/filesharing/offices/');
+  //       const data = await res.json();
+  //       setOffices(data);
+  //     } catch (err) {
+  //       console.error('Failed to load offices', err);
+  //       showToast('Failed to load office list', 'error');
+  //     }
+  //   }
 
-    fetchOffices();
-  }, []);
+  //   fetchOffices();
+  // }, []);
 
   function handleChange(e) {
     const { name, value, files } = e.target;
