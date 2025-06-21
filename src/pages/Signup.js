@@ -452,7 +452,7 @@ export default function Signup({offices}) {
 
       <div className="login-card">
         <div className="login-header">
-          <img src="/mcc-logo.png" alt="Mbarara City Council" className="logo" />
+          <img src="/logo.png" alt="Mbarara City Council" className="logo" />
           <h1>Create Your Account</h1>
           <p>Join MCC File Sharing System</p>
         </div>
