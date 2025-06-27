@@ -12,13 +12,28 @@
   --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --transition: all 0.3s ease;
 }
+.app-container {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
 .dashboard-container {
+  /* position: relative; */
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
   color: var(--dark-color);
 }
+/* user profile */
+.dashboard-top-right {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+}
+
+
 
 .dashboard-notification {
   position: fixed;
@@ -69,45 +84,11 @@
   gap: 0.5rem;
 }
 
-.upload-button {
-  background-color: var(--secondary-color);
-  color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
+
 
 .upload-button:hover {
   background-color: #2186c4;
   transform: translateY(-2px);
-}
-
-.upload-progress {
-  width: 200px;
-  height: 6px;
-  background-color: #e9ecef;
-  border-radius: 3px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: var(--success-color);
-  transition: width 0.3s ease;
-}
-
-.upload-progress span {
-  position: absolute;
-  right: 0;
-  top: -20px;
-  font-size: 0.7rem;
-  color: #6c757d;
 }
 
 .dashboard-tabs {

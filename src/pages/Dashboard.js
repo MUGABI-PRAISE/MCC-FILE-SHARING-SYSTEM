@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import '../styles/Dashboard.css';
+import Sidebar from '../components/Sidebar'; // responsible for the sidebar navigation
+import UserProfile from '../components/UserProfile'; // responsible for displaying user profile information
 import FileModal from '../components/FileModal';
 import FileSender from '../components/FileSender'; // responsible for the file sending process
 import NotificationBanner from '../components/NotificationBanner';
@@ -45,7 +47,12 @@ export default function Dashboard({ offices }) {
     { id: '8', name: 'Project_Update.docx', type: 'doc', size: '2.1 MB', date: '2 days ago', message: 'Weekly update on the marketing campaign progress' },
     { id: '9', name: 'Meeting_Invite.pptx', type: 'ppt', size: '1.5 MB', date: '1 week ago' }
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
-
+  
+  //simulated user
+  const user = {
+    name: 'Bi sure',
+    avatarUrl: 'https://via.placeholder.com/150'
+  };
   const handleFileSelect = (fileId, isNew) => {
     setSelectedFiles(prev => prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]);
     if (isNew) setUnreadCount(prev => prev - 1);
@@ -53,29 +60,52 @@ export default function Dashboard({ offices }) {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'received') setUnreadCount(0);
+
+    if (tab === 'received') {
+      setUnreadCount(0);
+    }
+
+    if (tab === 'profile') {
+      console.log('Navigating to user profile...');
+      // If needed, load profile data here or redirect.
+    }
+
+    // You can add more tab-specific logic if needed
   };
+
 
   const toggleMessage = (fileId) => {
     setExpandedMessages(prev => ({ ...prev, [fileId]: !prev[fileId] }));
   };
 
   return (
-    <div className="dashboard-container">
-      <NotificationBanner notification={notification} />
-      <DashboardHeader   onSendFile={() => setShowFileSender(true)} />
-      {showFileSender && (
-        <div className="modal-overlay">
-          <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
-            
+    <div className="app-container"> 
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="dashboard-top-right">
+          <UserProfile
+            user={user}
+            onClick={() => handleTabChange('profile')} // Navigate to profile tab or route
+          />
         </div>
-      )}
-      <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
-      <SelectedActions selectedFiles={selectedFiles} />
-      <FilesGrid activeTab={activeTab} recentFiles={recentFiles} receivedFiles={receivedFiles} sentFiles={sentFiles} selectedFiles={selectedFiles} expandedMessages={expandedMessages} onFileClick={handleFileClick} onToggleMessage={toggleMessage} />
-      <QuickActions />
-      {selectedFile && <FileModal file={selectedFile} onClose={closeModal} />}
-      
-    </div>
+
+      <div className="dashboard-container">
+        
+
+        <NotificationBanner notification={notification} />
+        <DashboardHeader   onSendFile={() => setShowFileSender(true)} />
+        {showFileSender && (
+          <div className="modal-overlay">
+            <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
+              
+          </div>
+        )}
+        <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
+        <SelectedActions selectedFiles={selectedFiles} />
+        <FilesGrid activeTab={activeTab} recentFiles={recentFiles} receivedFiles={receivedFiles} sentFiles={sentFiles} selectedFiles={selectedFiles} expandedMessages={expandedMessages} onFileClick={handleFileClick} onToggleMessage={toggleMessage} />
+        <QuickActions />
+        {selectedFile && <FileModal file={selectedFile} onClose={closeModal} />}
+        
+      </div>
+    </div> 
   );
 }

@@ -1,0 +1,238 @@
+:root {
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 70px;
+  --hamburger-size: 40px;
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --accent-color: #e74c3c;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s ease;
+}
+
+/* ========================
+   Hamburger Button
+======================== */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: transparent;
+  color: var(--primary-color);
+  border: none;
+  z-index: 1001;
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* ========================
+   Sidebar Overlay
+======================== */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+
+/* ========================
+   Sidebar Base Styles
+======================== */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  padding: 1.5rem 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  background: transparent;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, width 0.3s ease;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 1.5rem 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar__logo svg {
+  font-size: 1.8rem;
+  color: var(--secondary-color);
+  flex-shrink: 0;
+}
+
+.sidebar__nav,
+.sidebar__bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.sidebar__bottom {
+  margin-top: auto;
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--dark-color);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar__item span {
+  transition: opacity 0.3s ease;
+}
+
+.sidebar__item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar__item.active {
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--secondary-color);
+  font-weight: 500;
+}
+
+.sidebar__item.active svg {
+  color: var(--secondary-color);
+}
+
+.sidebar__item svg {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.sidebar__divider {
+  margin: 1rem 1.5rem;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sidebar__badge {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ========================
+   Mobile + Zoomed-in Desktop Styles
+   Covers widths <= 1024px
+======================== */
+@media (max-width: 1024px) {
+  .hamburger-btn {
+    display: block;
+  }
+
+  .sidebar {
+    width: 70px;
+    transform: translateX(-100%);
+    padding: 1rem 0;
+    align-items: center;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar.mobile-open {
+    width: 240px;
+    transform: translateX(0);
+    align-items: flex-start;
+
+    /* ✅ Rounded top-left and bottom-left corners */
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0px;
+    overflow: hidden;
+
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6);
+
+  }
+
+  .sidebar__logo,
+  .sidebar__nav,
+  .sidebar__bottom {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sidebar__logo span,
+  .sidebar__item span {
+    display: none;
+    opacity: 0;
+    width: 0;
+  }
+
+  .sidebar.mobile-open .sidebar__logo span,
+  .sidebar.mobile-open .sidebar__item span {
+    display: inline;
+    opacity: 1;
+    width: auto;
+  }
+
+  .sidebar__item {
+    justify-content: center;
+    padding: 0.75rem 0;
+    width: 100%;
+  }
+
+  .sidebar__divider {
+    margin: 1rem auto;
+    width: 50%;
+  }
+
+  .sidebar__badge {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
+}
+
+/* ========================
+   Collapsed Sidebar (Low-DPI Zoom on Desktop)
+======================== */
+@media (max-resolution: 110dpi) and (min-width: 1025px) {
+  .sidebar {
+    width: var(--sidebar-collapsed-width);
+  }
+
+  .sidebar__logo span,
+  .sidebar__item span {
+    opacity: 0;
+    width: 0;
+    display: none;
+  }
+
+  .sidebar__item {
+    justify-content: center;
+    padding: 0.75rem 0;
+  }
+
+  .sidebar__divider {
+    margin: 1rem auto;
+    width: 50%;
+  }
+}
