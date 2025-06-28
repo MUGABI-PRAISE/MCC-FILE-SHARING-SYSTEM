@@ -1,31 +1,4 @@
-// import { useState, useEffect } from 'react';
-// import '../styles/Toast.css';
 
-// export default function Toast({ message, type, duration = 4000, onClose }) {
-//   const [visible, setVisible] = useState(true);
-
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setVisible(false);
-//       onClose();
-//     }, duration);
-
-//     return () => clearTimeout(timer);
-//   }, [duration, onClose]);
-
-//   if (!visible) return null;
-
-//   return (
-//     <div className={`toast toast-${type}`}>
-//       <div className="toast-message">{message}</div>
-//     </div>
-//   );
-// }
-
-///////////////////////
-// FROM TOP 
-//////////////////////////
-// Toast.js
 import { useState, useEffect } from 'react';
 import '../styles/Toast.css';
 

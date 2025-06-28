@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/Dashboard.css';
-import Sidebar from '../components/Sidebar'; // responsible for the sidebar navigation
-import UserProfile from '../components/UserProfile'; // responsible for displaying user profile information
+import Sidebar from '../components/Sidebar';
+import UserProfile from '../components/UserProfile';
 import FileModal from '../components/FileModal';
-import FileSender from '../components/FileSender'; // responsible for the file sending process
+import FileSender from '../components/FileSender';
 import NotificationBanner from '../components/NotificationBanner';
 import DashboardHeader from '../components/DashboardHeader';
 import DashboardTabs from '../components/DashboardTabs';
@@ -11,18 +11,62 @@ import SelectedActions from '../components/SelectedActions';
 import QuickActions from '../components/QuickActions';
 import FilesGrid from '../components/FilesGrid';
 
-export default function Dashboard({ offices }) {
-  const [showFileSender, setShowFileSender] = useState(false); // trigger the file sender to be shown when send file button is clicked.
+export default function Dashboard({ offices, setIsAuthenticated }) {
+  const [showFileSender, setShowFileSender] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeTab, setActiveTab] = useState('recent');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [notification, setNotification] = useState(null);
-  const [unreadCount, setUnreadCount] = useState();
+  const [unreadCount, setUnreadCount] = useState(0);
   const [expandedMessages, setExpandedMessages] = useState({});
+  const [sentFiles, setSentFiles] = useState([]);
+  const [loadingSentFiles, setLoadingSentFiles] = useState(false);
+  const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (activeTab === 'sent') {
+      fetchSentFiles();
+    }
+  }, [activeTab]);
+
+  const fetchSentFiles = async () => {
+    try {
+      setLoadingSentFiles(true);
+      setError(null);
+      const response = await fetch('http://localhost:8000/filesharing/documents/sent/', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const transformedFiles = data.map(file => ({
+        id: file.id,
+        name: file.document_title || file.file.split('/').pop(),
+        type: file.file_type.split('/').pop().split('.').pop().toLowerCase(),
+        size: file.file_size,
+        date: file.sent_at,
+        message: file.message || '',
+        fileUrl: file.file
+      }));
+
+      setSentFiles(transformedFiles);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch sent files');
+      console.error('Error fetching sent files:', err);
+    } finally {
+      setLoadingSentFiles(false);
+    }
+  };
 
   const handleSendComplete = (sentFile) => {
-    alert('File sent:', sentFile);
+    setNotification({ type: 'success', message: 'File sent successfully!' });
+    fetchSentFiles(); // Refresh sent files list
   };
 
   const handleFileClick = (file) => {
@@ -42,17 +86,6 @@ export default function Dashboard({ offices }) {
 
   const receivedFiles = [...recentFiles, { id: '5', name: 'Personal_Notes.txt', type: 'txt', size: '12 KB', date: 'Yesterday', isNew: false, message: 'Quick notes from the client call' }, { id: '6', name: 'Presentation_Slides.pptx', type: 'ppt', size: '8.2 MB', date: 'Last week', isNew: false }].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const sentFiles = [
-    { id: '7', name: 'Annual_Report.pdf', type: 'pdf', size: '3.8 MB', date: 'Today', message: 'Annual financial report for 2023' },
-    { id: '8', name: 'Project_Update.docx', type: 'doc', size: '2.1 MB', date: '2 days ago', message: 'Weekly update on the marketing campaign progress' },
-    { id: '9', name: 'Meeting_Invite.pptx', type: 'ppt', size: '1.5 MB', date: '1 week ago' }
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
-  
-  //simulated user
-  const user = {
-    name: 'Bi sure',
-    avatarUrl: 'https://via.placeholder.com/150'
-  };
   const handleFileSelect = (fileId, isNew) => {
     setSelectedFiles(prev => prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]);
     if (isNew) setUnreadCount(prev => prev - 1);
@@ -60,51 +93,62 @@ export default function Dashboard({ offices }) {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-
-    if (tab === 'received') {
-      setUnreadCount(0);
-    }
-
-    if (tab === 'profile') {
-      console.log('Navigating to user profile...');
-      // If needed, load profile data here or redirect.
-    }
-
-    // You can add more tab-specific logic if needed
+    if (tab === 'received') setUnreadCount(0);
+    if (tab === 'profile') console.log('Navigating to user profile...');
   };
-
 
   const toggleMessage = (fileId) => {
     setExpandedMessages(prev => ({ ...prev, [fileId]: !prev[fileId] }));
   };
 
+  const user = {
+    name: localStorage.getItem('firstName') + ' ' + localStorage.getItem('lastName'),
+    position: localStorage.getItem('position'),
+    // avatarUrl: 'https://via.placeholder.com/150'
+  };
+  
+
   return (
     <div className="app-container"> 
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} setIsAuthenticated={setIsAuthenticated} />
       <div className="dashboard-top-right">
-          <UserProfile
-            user={user}
-            onClick={() => handleTabChange('profile')} // Navigate to profile tab or route
-          />
-        </div>
+        <UserProfile user={user} onClick={() => handleTabChange('profile')} />
+      </div>
 
       <div className="dashboard-container">
-        
-
         <NotificationBanner notification={notification} />
-        <DashboardHeader   onSendFile={() => setShowFileSender(true)} />
+        <DashboardHeader onSendFile={() => setShowFileSender(true)} />
+        
         {showFileSender && (
           <div className="modal-overlay">
             <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
-              
           </div>
         )}
+
         <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
         <SelectedActions selectedFiles={selectedFiles} />
-        <FilesGrid activeTab={activeTab} recentFiles={recentFiles} receivedFiles={receivedFiles} sentFiles={sentFiles} selectedFiles={selectedFiles} expandedMessages={expandedMessages} onFileClick={handleFileClick} onToggleMessage={toggleMessage} />
+        
+        {loadingSentFiles && activeTab === 'sent' && (
+          <div className="loading-indicator">Loading sent files...</div>
+        )}
+        
+        {error && activeTab === 'sent' && (
+          <div className="error-message">Error: {error}</div>
+        )}
+
+        <FilesGrid 
+          activeTab={activeTab} 
+          recentFiles={recentFiles} 
+          receivedFiles={receivedFiles} 
+          sentFiles={sentFiles} 
+          selectedFiles={selectedFiles} 
+          expandedMessages={expandedMessages} 
+          onFileClick={handleFileClick} 
+          onToggleMessage={toggleMessage} 
+        />
+        
         <QuickActions />
         {selectedFile && <FileModal file={selectedFile} onClose={closeModal} />}
-        
       </div>
     </div> 
   );

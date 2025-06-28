@@ -38,16 +38,14 @@
   */
 
   /* /////////////////////////////////////////////////////Toast.css */
-.toast-container {
+  .toast-container {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    z-index: 1000;
-    pointer-events: none;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;  /* <-- Make sure it's higher than your modal's z-index */
+    transition: all 0.3s ease;
   }
+  
   
   .toast {
     padding: 15px 25px;

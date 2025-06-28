@@ -1,24 +1,27 @@
-import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
-import {useState, useEffect} from 'react';
-import Toast from './components/Toast'; 
-
+import { useState, useEffect } from 'react';
+import Toast from './components/Toast';
 
 export default function App() {
   const [offices, setOffices] = useState([]);
   const [toast, setToast] = useState(null);
 
+  // ✅ Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem('token')
+  );
 
+  // ✅ Show toast
   const showToast = (message, type) => {
     setToast({ message, type });
   };
 
-  const closeToast = () => {
-    setToast(null);
-  };
+  const closeToast = () => setToast(null);
 
+  // ✅ Fetch office list on mount
   useEffect(() => {
     async function fetchOffices() {
       try {
@@ -30,17 +33,51 @@ export default function App() {
         showToast('Failed to load office list', 'error');
       }
     }
-
     fetchOffices();
   }, []);
-    return(
-      <BrowserRouter>
-        <Routes>
-          <Route path = "/" element = {<Login />} />
-          <Route path = "/signup" element = {<Signup offices={offices} />} />
-          <Route path = "/login" element = {<Login />} />
-          <Route path = "/dashboard" element = {<Dashboard offices={offices} />} />
-        </Routes> 
-      </BrowserRouter>
-    )
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Login setIsAuthenticated={setIsAuthenticated} />
+            )
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Login setIsAuthenticated={setIsAuthenticated} />
+            )
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={<Signup offices={offices} />}
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <Dashboard
+                offices={offices}
+                setIsAuthenticated={setIsAuthenticated}
+              />
+          }
+        />
+      </Routes>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}
+    </BrowserRouter>
+  );
 }

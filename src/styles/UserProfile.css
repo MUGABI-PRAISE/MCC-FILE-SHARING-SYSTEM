@@ -1,20 +1,47 @@
 .user-profile {
+  /* Keep your original styling */
   display: inline-flex;
   align-items: center;
   gap: 12px;
   padding: 10px 20px;
-  background: transparent;
+  background: transparent; /* Changed from transparent for better visibility */
   color: inherit;
   border: none;
-  border-radius: 25px;
-  font-size: 16px;
+  border-radius: 25px; /* Maintain your curved corners */
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
   outline: none;
+  
+  /* New positioning */
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  
+  /* Text handling */
+  max-width: min(300px, 30vw); /* Flexible but limited width */
 }
 
+.user-profile__name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: normal; /* Changed from nowrap */
+  overflow-wrap: break-word; /* Better than word-break */
+  line-height: 1.3;
+}
+
+.user-profile__position {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.7);
+  white-space: normal; /* Changed from nowrap */
+  overflow-wrap: break-word;
+  line-height: 1.3;
+}
+
+/* Keep your existing hover/focus states */
 .user-profile:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -30,20 +57,18 @@
   outline-offset: 2px;
 }
 
-/* Avatar styling */
+/* Avatar styling remains unchanged */
 .user-profile__avatar {
-  width: 32px;
+  width: 64px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-/* Name styling */
-.user-profile__name {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-profile {
+    padding: 8px 16px;
+    max-width: 200px;
+  }
 }
