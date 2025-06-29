@@ -1,120 +1,140 @@
+:root {
+  --primary-color: #4285f4;
+  --secondary-color: #34a853;
+  --error-color: #ea4335;
+}
+
+/* Modal Header */
 .modal-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
   margin-bottom: 1.5rem;
 }
 
 .modal-file-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.modal-file-icon .pdf {
-  background-color: #e74c3c;
+.modal-file-icon span {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 16px;
   color: white;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
-/* Add similar styles for .doc, .ppt, .txt icons */
-.modal-file-icon .doc {
-  background-color: #3498db;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  color: white;
-  font-weight: bold;
-}
-
-.modal-file-icon .ppt {
-  background-color: #f39c12;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  color: white;
-  font-weight: bold;
-}
-
-.modal-file-icon .txt {
-  background-color: #95a5a6;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  color: white;
-  font-weight: bold;
-}
+.modal-file-icon .pdf { background-color: #e74c3c; }
+.modal-file-icon .doc { background-color: #3498db; }
+.modal-file-icon .ppt { background-color: #f39c12; }
+.modal-file-icon .txt { background-color: #95a5a6; }
+.modal-file-icon .zip { background-color: #9b59b6; }
 
 .modal-file-meta {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   font-size: 0.9rem;
-  color: #666;
+  color: #777;
   margin-top: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
+/* Modal Body */
 .modal-body {
   margin: 1.5rem 0;
 }
 
 .modal-message {
   background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
+  padding: 1.25rem;
+  border-radius: 12px;
   margin-bottom: 1.5rem;
+  border-left: 4px solid var(--primary-color);
 }
 
 .modal-message h4 {
   margin-bottom: 0.5rem;
   color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+/* File Preview */
+.file-preview-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.file-iframe {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background-color: #f8f9fa;
 }
 
 .file-preview-placeholder {
   height: 400px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
   border-radius: 8px;
+  border: 2px dashed #e0e0e0;
   color: #666;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 1rem;
 }
 
+.file-preview-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.file-preview-placeholder.doc { background-color: rgba(52, 152, 219, 0.05); }
+.file-preview-placeholder.ppt { background-color: rgba(243, 156, 18, 0.05); }
+.file-preview-placeholder.zip { background-color: rgba(155, 89, 182, 0.05); }
+
+/* Modal Actions */
 .modal-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  margin-top: 2rem;
 }
 
 .modal-button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.8rem;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-button.view {
+  background: linear-gradient(135deg, var(--primary-color), #34a853);
+  color: white;
 }
 
 .modal-button.download {
@@ -130,21 +150,32 @@
 .modal-button.delete {
   background-color: #f8f9fa;
   color: var(--error-color);
+  border: 1px solid #eee;
 }
 
 .modal-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
+.modal-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .modal-actions {
     flex-direction: column;
+    width: 100%;
+  }
+
+  .modal-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .modal-file-meta {
     flex-direction: column;
-    gap: 0.3rem;
-    align-items: center;
+    gap: 0.5rem;
   }
 }

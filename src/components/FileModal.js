@@ -1,16 +1,20 @@
-// FileModal.js
 import Modal from './Modal';
 import '../styles/FileModal.css';
 
 export default function FileModal({ file, onClose }) {
+  const isPDF = file.type === 'pdf';
+  const isText = file.type === 'txt';
+  const fileUrl = file.fileUrl;
+
   return (
     <Modal onClose={onClose}>
       <div className="modal-header">
         <div className="modal-file-icon">
-          {file.type === 'pdf' && <span className="pdf">PDF</span>}
+          {isPDF && <span className="pdf">PDF</span>}
           {file.type === 'doc' && <span className="doc">DOC</span>}
           {file.type === 'ppt' && <span className="ppt">PPT</span>}
-          {file.type === 'txt' && <span className="txt">TXT</span>}
+          {isText && <span className="txt">TXT</span>}
+          {file.type === 'zip' && <span className="zip">ZIP</span>}
         </div>
         <h2>{file.name}</h2>
         <div className="modal-file-meta">
@@ -29,24 +33,45 @@ export default function FileModal({ file, onClose }) {
         )}
 
         <div className="modal-preview">
-          <div className="file-preview-placeholder">
-            {file.type === 'pdf' && 'PDF Preview'}
-            {file.type === 'doc' && 'Document Preview'}
-            {file.type === 'ppt' && 'Presentation Preview'}
-            {file.type === 'txt' && 'Text Content Preview'}
+          <div className="file-preview-container">
+            {['pdf', 'txt'].includes(file.type) ? (
+              <iframe
+                src={file.fileUrl}
+                width="100%"
+                height="400px"
+                title="File Preview"
+                className="file-iframe"
+              ></iframe>
+            ) : (
+              <div className={`file-preview-placeholder ${file.type}`}>
+                <div className="file-preview-icon">
+                  {file.type === 'doc' ? '📝' : 
+                   file.type === 'ppt' ? '📊' : 
+                   file.type === 'zip' ? '🗄️' : '📄'}
+                </div>
+                <div className="file-preview-message">
+                  {file.type === 'doc' ? 'Word document preview not available' : 
+                   file.type === 'ppt' ? 'PowerPoint preview not available' : 
+                   file.type === 'zip' ? 'Compressed folder (download to view)' : 'No preview available'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <div className="modal-actions">
-        <button className="modal-button download">
-          <span>↓</span> Download
-        </button>
+        <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="modal-button view">
+          🔍 View Full
+        </a>
+        <a href={fileUrl} download className="modal-button download">
+          ↓ Download
+        </a>
         <button className="modal-button share">
-          <span>↗</span> Share
+          ↗ Share
         </button>
         <button className="modal-button delete">
-          <span>🗑</span> Delete
+          🗑 Delete
         </button>
       </div>
     </Modal>

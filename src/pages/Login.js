@@ -3,7 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import '../styles/Login.css';
 import LoginSuccessAnimation from '../components/LoginSuccessAnimation';
 
-export default function Login({ setIsAuthenticated }) {
+export default function Login({ setIsAuthenticated, setUserInfo}) {
   // State for login animation trigger
   const [loginSuccess, setLoginSuccess] = useState(false);
 
@@ -49,10 +49,10 @@ export default function Login({ setIsAuthenticated }) {
         localStorage.setItem('firstName', data.user.first_name);
         localStorage.setItem('lastName', data.user.last_name);
         localStorage.setItem('position', data.user.position);
-        console.log(data.user.first_name);
-        console.log(data.user.last_name);
-        console.log(data.user.position);
 
+        // save the user, and push him to App.js which will give them to any component in need of it
+        setUserInfo(data.user); // 👈 this pushes user to App.js
+        
         setSuccess('Login successful! Redirecting...');
         setLoginSuccess(true); // Trigger animation
         setTimeout(() => {

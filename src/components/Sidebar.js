@@ -53,7 +53,7 @@ const Sidebar = ({ activeTab, onTabChange, setIsAuthenticated }) => {
     // });
 
     // 3. Redirect user to login page
-    navigate("/login");
+navigate("/login", { replace: true });
   };
 
   return (
@@ -110,17 +110,20 @@ const Sidebar = ({ activeTab, onTabChange, setIsAuthenticated }) => {
               className="sidebar__item"
               onClick={() => {
                 if (item.tab === "logout") {
-                  handleLogout(); // Call logout logic
-                } else {
-                  console.log(`Navigate to ${item.tab}`);
-                  setIsMobileOpen(false); // Close mobile menu
+                  handleLogout();
+                } else if (item.tab === "profile") {
+                  navigate("/dashboard/profile"); // ✅ Navigate to Profile page
+                } else if (item.tab === "settings") {
+                  navigate("/dashboard/settings"); // Optional: for future
                 }
+                setIsMobileOpen(false); // Close mobile menu
               }}
             >
               {item.icon}
               <span>{item.label}</span>
             </div>
           ))}
+
         </div>
       </div>
     </>

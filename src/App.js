@@ -4,15 +4,16 @@ import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
 import { useState, useEffect } from 'react';
 import Toast from './components/Toast';
+// import Profile from './pages/Profile';
 
 export default function App() {
   const [offices, setOffices] = useState([]);
   const [toast, setToast] = useState(null);
-
-  // ✅ Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!localStorage.getItem('token')
   );
+  const [userInfo, setUserInfo] = useState(null); // user information
+
 
   // ✅ Show toast
   const showToast = (message, type) => {
@@ -45,7 +46,10 @@ export default function App() {
             isAuthenticated ? (
               <Navigate to="/dashboard" replace />
             ) : (
-              <Login setIsAuthenticated={setIsAuthenticated} />
+              <Login 
+                setIsAuthenticated={setIsAuthenticated} 
+                setUserInfo={setUserInfo} // 👈 pass down to Login
+              />
             )
           }
         />
@@ -56,7 +60,10 @@ export default function App() {
             isAuthenticated ? (
               <Navigate to="/dashboard" replace />
             ) : (
-              <Login setIsAuthenticated={setIsAuthenticated} />
+              <Login 
+                setIsAuthenticated={setIsAuthenticated} 
+                setUserInfo={setUserInfo} // 👈 pass down to Login
+              />
             )
           }
         />
@@ -70,11 +77,24 @@ export default function App() {
           path="/dashboard"
           element={
             <Dashboard
-                offices={offices}
-                setIsAuthenticated={setIsAuthenticated}
-              />
+              offices={offices}
+              setIsAuthenticated={setIsAuthenticated}
+              userInfo={userInfo} // user object
+            />
           }
         />
+
+          {/* profile page */}
+        {/* <Route
+          path="/dashboard/profile"
+          element={
+            isAuthenticated ? (
+              <Profile />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        /> */}
       </Routes>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}
