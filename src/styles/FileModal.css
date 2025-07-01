@@ -1,7 +1,14 @@
 :root {
-  --primary-color: #4285f4;
-  --secondary-color: #34a853;
-  --error-color: #ea4335;
+  /* Your original colors (unchanged) */
+  --primary-color: #4285f4;  /* Original blue */
+  --secondary-color: #34a853;  /* Original green */
+  --error-color: #ea4335;  /* Original red */
+
+  /* New additions for visual enhancement */
+  --accent-color: #ff7d4a;  /* Vibrant orange for highlights */
+  --light-bg: #f8f9fa;      /* Soft gray for backgrounds */
+  --dark-text: #2c3e50;     /* Deep blue-gray for headings/primary text */
+  --light-text: #7f8c8d;    /* Muted gray for secondary text */
 }
 
 /* Modal Header */

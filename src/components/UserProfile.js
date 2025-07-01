@@ -3,7 +3,8 @@ import '../styles/UserProfile.css';
 import { FaUser } from 'react-icons/fa';
 
 export default function UserProfile({ user, onClick }) {
-  // user = { name: string, position: string, avatarUrl: string }
+  //return early if user is not yet set
+  if (!user) return null; // guard line
   return (
     <div className="user-profile" onClick={onClick} role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter') onClick(); }}>
       {user.avatarUrl ? (

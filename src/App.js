@@ -4,7 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Signup from './pages/Signup';
 import { useState, useEffect } from 'react';
 import Toast from './components/Toast';
-// import Profile from './pages/Profile';
+import Profile from './pages/Profile';
 
 export default function App() {
   const [offices, setOffices] = useState([]);
@@ -85,16 +85,16 @@ export default function App() {
         />
 
           {/* profile page */}
-        {/* <Route
+        <Route
           path="/dashboard/profile"
           element={
             isAuthenticated ? (
-              <Profile />
+              <Profile user = {userInfo} isAuthenticated={isAuthenticated}/>
             ) : (
               <Navigate to="/login" replace />
             )
           }
-        /> */}
+        />
       </Routes>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}

@@ -10,7 +10,7 @@ import "../styles/Sidebar.css";
  * Sidebar navigation component for the FileShare app.
  * Handles tab navigation and user logout with JWT.
  */
-const Sidebar = ({ activeTab, onTabChange, setIsAuthenticated }) => {
+const Sidebar = ({ activeTab, onTabChange, onLogout}) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false); // Controls mobile menu visibility
   const navigate = useNavigate(); // Used for redirecting after logout
 
@@ -29,32 +29,8 @@ const Sidebar = ({ activeTab, onTabChange, setIsAuthenticated }) => {
     { icon: <FaSignOutAlt size={18} />, label: "Logout", tab: "logout" },
   ];
 
-  /**
-   * Handles logging out the user by:
-   * 1. Removing the JWT token from localStorage
-   * 2. Redirecting to the login page
-   * 3. Optionally calling a backend logout endpoint (if needed)
-   */
-  const handleLogout = () => {
-    // 1. Clear JWT token from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('firstName');
-    localStorage.removeItem('lastName');
-    localStorage.removeItem('position');
-    setIsAuthenticated(false); // ✅ Re-render routes and force redirect
-    // 2. (Optional) Call backend logout endpoint if using blacklisting
-    // fetch('http://localhost:8000/api/logout/', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${localStorage.getItem('token')}`,
-    //     'Content-Type': 'application/json'
-    //   }
-    // });
 
-    // 3. Redirect user to login page
-navigate("/login", { replace: true });
-  };
+  
 
   return (
     <>
@@ -110,7 +86,7 @@ navigate("/login", { replace: true });
               className="sidebar__item"
               onClick={() => {
                 if (item.tab === "logout") {
-                  handleLogout();
+                  onLogout();
                 } else if (item.tab === "profile") {
                   navigate("/dashboard/profile"); // ✅ Navigate to Profile page
                 } else if (item.tab === "settings") {

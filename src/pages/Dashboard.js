@@ -10,6 +10,8 @@ import DashboardTabs from '../components/DashboardTabs';
 import SelectedActions from '../components/SelectedActions';
 import QuickActions from '../components/QuickActions';
 import FilesGrid from '../components/FilesGrid';
+import {authFetch} from '../services/FetchAuth';
+import {useNavigate} from 'react-router-dom';
 
 export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   const [showFileSender, setShowFileSender] = useState(false);
@@ -25,7 +27,13 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   const [loadingSentFiles, setLoadingSentFiles] = useState(false);
   const [loadingReceivedFiles, setLoadingReceivedFiles] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
+  // set the user's name
+  const user = userInfo ? {
+    ...userInfo,
+    name: `${userInfo.first_name} ${userInfo.last_name}`
+  } : null;
   // Automatically fetch data when tab changes
   useEffect(() => {
     if (activeTab === 'sent') {
@@ -37,14 +45,13 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
     }
   }, [activeTab]);
   // fetch the user
-  const user = userInfo;
 
   // Fetch Sent Files
   const fetchSentFiles = async () => {
     try {
       setLoadingSentFiles(true);
       setError(null);
-      const response = await fetch('http://localhost:8000/filesharing/documents/sent/', {
+      const response = await authFetch('http://localhost:8000/filesharing/documents/sent/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -148,7 +155,28 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
     setNotification({ type: 'success', message: 'File sent successfully!' });
     fetchSentFiles(); // Refresh sent files list
   };
-
+  //logout the user
+  const handleLogout = () => {
+      // 1. Clear JWT token from localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('lastName');
+      localStorage.removeItem('position');
+      setIsAuthenticated(false); // ✅ Re-render routes and force redirect
+      // 2. (Optional) Call backend logout endpoint if using blacklisting
+      // fetch('http://localhost:8000/api/logout/', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      //     'Content-Type': 'application/json'
+      //   }
+      // });
+  
+      // 3. Redirect user to login page
+      navigate("/login", { replace: true });
+    };
+    
   const handleFileClick = (file) => {
     setSelectedFile(file);
   };
@@ -184,7 +212,12 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} setIsAuthenticated={setIsAuthenticated} />
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange} 
+        setIsAuthenticated={setIsAuthenticated} 
+        onLogout = {handleLogout}
+      />
       
       <div className="dashboard-top-right">
         <UserProfile user={user} onClick={() => handleTabChange('profile')} />
