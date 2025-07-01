@@ -213,3 +213,180 @@ body {
     margin-bottom: 0.25rem;
   }
 }
+/* Add these to your existing Profile.css */
+
+/* Add these to your existing Profile.css */
+
+/* Editable fields - match original styling */
+.profile-input {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  width: 100%;
+  background-color: white;
+  color: var(--light-text);
+  transition: all 0.2s ease;
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.2);
+}
+
+.profile-input.name-input {
+  width: calc(50% - 8px);
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.name-edit {
+  display: flex;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Date input styling */
+.profile-input[type="date"] {
+  padding: 0.35rem 0.5rem;
+}
+
+/* Avatar editing */
+.profile-avatar.editable {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.profile-avatar.editable:hover {
+  border-color: var(--primary-color);
+}
+
+.camera-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-hint {
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Detail rows in edit mode */
+.detail-row.editing {
+  align-items: center;
+}
+
+/* Action buttons */
+.profile-button.save {
+  background: var(--primary-color);
+  color: white;
+}
+
+.profile-button.cancel {
+  background: white;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+/* Ensure form maintains same size */
+.profile-container.editing {
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-input.name-input {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+  
+  .name-edit {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-input {
+    padding: 0.5rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .detail-label {
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Make sure inputs don't overflow on small screens */
+.detail-value {
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Match original card styling for inputs */
+.detail-card input {
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Header input styling */
+.profile-header input {
+  text-align: center;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--dark-text);
+}
+
+.profile-header input.profile-input {
+  background: white;
+}
+
+.profile-header h1 input {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+}
+
+.profile-title input {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.profile-office input {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
