@@ -156,26 +156,26 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
     fetchSentFiles(); // Refresh sent files list
   };
   //logout the user
-  const handleLogout = () => {
-      // 1. Clear JWT token from localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('firstName');
-      localStorage.removeItem('lastName');
-      localStorage.removeItem('position');
-      setIsAuthenticated(false); // ✅ Re-render routes and force redirect
-      // 2. (Optional) Call backend logout endpoint if using blacklisting
-      // fetch('http://localhost:8000/api/logout/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      //     'Content-Type': 'application/json'
-      //   }
-      // });
+  // const handleLogout = () => {
+  //     // 1. Clear JWT token from localStorage
+  //     localStorage.removeItem('token');
+  //     localStorage.removeItem('refreshToken');
+  //     localStorage.removeItem('firstName');
+  //     localStorage.removeItem('lastName');
+  //     localStorage.removeItem('position');
+  //     setIsAuthenticated(false); // ✅ Re-render routes and force redirect
+  //     // 2. (Optional) Call backend logout endpoint if using blacklisting
+  //     // fetch('http://localhost:8000/api/logout/', {
+  //     //   method: 'POST',
+  //     //   headers: {
+  //     //     'Authorization': `Bearer ${localStorage.getItem('token')}`,
+  //     //     'Content-Type': 'application/json'
+  //     //   }
+  //     // });
   
-      // 3. Redirect user to login page
-      navigate("/login", { replace: true });
-    };
+  //     // 3. Redirect user to login page
+  //     navigate("/login", { replace: true });
+  //   };
     
   const handleFileClick = (file) => {
     setSelectedFile(file);
@@ -216,7 +216,6 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
         activeTab={activeTab} 
         onTabChange={handleTabChange} 
         setIsAuthenticated={setIsAuthenticated} 
-        onLogout = {handleLogout}
       />
       
       <div className="dashboard-top-right">

@@ -65,10 +65,10 @@
   object-fit: cover;
 }
 
-/* Responsive adjustments */
+/* 🔻 Responsive Rule to Hide on Small Screens */
 @media (max-width: 768px) {
   .user-profile {
-    padding: 8px 16px;
-    max-width: 200px;
+    display: none !important;
   }
 }
+

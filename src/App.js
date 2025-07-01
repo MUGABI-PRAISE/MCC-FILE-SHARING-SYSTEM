@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import { useState, useEffect } from 'react';
 import Toast from './components/Toast';
 import Profile from './pages/Profile';
+import { AuthProvider } from './services/AuthContext';
 
 export default function App() {
   const [offices, setOffices] = useState([]);
@@ -39,65 +40,69 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Login 
-                setIsAuthenticated={setIsAuthenticated} 
-                setUserInfo={setUserInfo} // 👈 pass down to Login
-              />
-            )
-          }
-        />
-
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <Login 
-                setIsAuthenticated={setIsAuthenticated} 
-                setUserInfo={setUserInfo} // 👈 pass down to Login
-              />
-            )
-          }
-        />
-
-        <Route
-          path="/signup"
-          element={<Signup offices={offices} />}
-        />
-
-        <Route
-          path="/dashboard"
-          element={
-            <Dashboard
-              offices={offices}
-              setIsAuthenticated={setIsAuthenticated}
-              userInfo={userInfo} // user object
+      <AuthProvider setIsAuthenticated={setIsAuthenticated}>
+        
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Login 
+                    setIsAuthenticated={setIsAuthenticated} 
+                    setUserInfo={setUserInfo} // 👈 pass down to Login
+                  />
+                )
+              }
             />
-          }
-        />
 
-          {/* profile page */}
-        <Route
-          path="/dashboard/profile"
-          element={
-            isAuthenticated ? (
-              <Profile user = {userInfo} isAuthenticated={isAuthenticated}/>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-      </Routes>
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Login 
+                    setIsAuthenticated={setIsAuthenticated} 
+                    setUserInfo={setUserInfo} // 👈 pass down to Login
+                  />
+                )
+              }
+            />
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}
+            <Route
+              path="/signup"
+              element={<Signup offices={offices} />}
+            />
+
+            <Route
+              path="/dashboard"
+              element={
+                <Dashboard
+                  offices={offices}
+                  setIsAuthenticated={setIsAuthenticated}
+                  userInfo={userInfo} // user object
+                />
+              }
+            />
+
+              {/* profile page */}
+            <Route
+              path="/dashboard/profile"
+              element={
+                isAuthenticated ? (
+                  <Profile user = {userInfo} isAuthenticated={isAuthenticated}/>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
+          </Routes>
+
+          {toast && <Toast message={toast.message} type={toast.type} onClose={closeToast} />}
+      </AuthProvider>
     </BrowserRouter>
+
   );
 }

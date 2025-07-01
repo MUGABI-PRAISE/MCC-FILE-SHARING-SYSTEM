@@ -5,14 +5,16 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../styles/Sidebar.css";
+import { useAuth } from '../services/AuthContext';
 
 /**
  * Sidebar navigation component for the FileShare app.
  * Handles tab navigation and user logout with JWT.
  */
-const Sidebar = ({ activeTab, onTabChange, onLogout}) => {
+const Sidebar = ({ activeTab, onTabChange}) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false); // Controls mobile menu visibility
   const navigate = useNavigate(); // Used for redirecting after logout
+  const {logout} = useAuth(); // our own created hook
 
   // Navigation items at the top of the sidebar
   const navItems = [
@@ -86,7 +88,7 @@ const Sidebar = ({ activeTab, onTabChange, onLogout}) => {
               className="sidebar__item"
               onClick={() => {
                 if (item.tab === "logout") {
-                  onLogout();
+                  logout();
                 } else if (item.tab === "profile") {
                   navigate("/dashboard/profile"); // ✅ Navigate to Profile page
                 } else if (item.tab === "settings") {
