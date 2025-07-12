@@ -1,10 +1,39 @@
 import Modal from './Modal';
 import '../styles/FileModal.css';
 
-export default function FileModal({ file, onClose }) {
+export default function FileModal({ file, onClose, onDeleteSuccess }) {
   const isPDF = file.type === 'pdf';
   const isText = file.type === 'txt';
   const fileUrl = file.fileUrl;
+
+
+  // delete a file
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this document?')) return;
+
+    try {
+      console.log(file.id);
+      const response = await fetch(`http://localhost:8000/filesharing/documents/${file.id}/delete/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // if you're using JWT
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 204) {
+        alert('File deleted successfully.');
+        onClose(); // Close the modal
+      } else if (response.status === 403) {
+        alert('You are not allowed to delete this file.');
+      } else {
+        alert('Something went wrong while deleting the file.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to connect to the server.');
+    }
+  };
 
   return (
     <Modal onClose={onClose}>
@@ -70,7 +99,7 @@ export default function FileModal({ file, onClose }) {
         <button className="modal-button share">
           ↗ Share
         </button>
-        <button className="modal-button delete">
+        <button className="modal-button delete" onClick={handleDelete}>
           🗑 Delete
         </button>
       </div>

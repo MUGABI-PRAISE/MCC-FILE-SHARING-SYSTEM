@@ -46,6 +46,13 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   }, [activeTab]);
   // fetch the user
 
+  // handle deleted files
+  const handleDeleteSuccess = (deletedId) => {
+  setSentFiles(prevFiles =>
+    prevFiles.filter(file => file.id !== deletedId)
+  );
+};
+
   // Fetch Sent Files
   const fetchSentFiles = async () => {
     try {
@@ -255,7 +262,7 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
         />
 
         <QuickActions />
-        {selectedFile && <FileModal file={selectedFile} onClose={closeModal} />}
+        {selectedFile && <FileModal file={selectedFile} onClose={closeModal} onDeleteSuccess={handleDeleteSuccess} />}
       </div>
     </div>
   );
