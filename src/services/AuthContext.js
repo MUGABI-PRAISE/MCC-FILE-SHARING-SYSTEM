@@ -1,13 +1,13 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children, setIsAuthenticated }) => {
+export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
   const logout = () => {
-    // remove all tokens from storage
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('firstName');
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children, setIsAuthenticated }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ logout }}>
+    <AuthContext.Provider value={{ logout, isAuthenticated, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

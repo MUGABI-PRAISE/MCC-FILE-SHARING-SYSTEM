@@ -12,7 +12,7 @@ export default function FileModal({ file, onClose, onDeleteSuccess }) {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
 
     try {
-      console.log(file.id);
+      console.log("Attempting to delete file with ID:", file.id);
       const response = await fetch(`http://localhost:8000/filesharing/documents/${file.id}/delete/`, {
         method: 'DELETE',
         headers: {
@@ -24,10 +24,8 @@ export default function FileModal({ file, onClose, onDeleteSuccess }) {
       if (response.status === 204) {
         alert('File deleted successfully.');
         onClose(); // Close the modal
-      } else if (response.status === 403) {
-        alert('You are not allowed to delete this file.');
-      } else {
-        alert('Something went wrong while deleting the file.');
+        if (onDeleteSuccess) onDeleteSuccess(file.id); // Notify parent!
+      } else {alert(`you're not allowed to delete this file`);
       }
     } catch (err) {
       console.error(err);

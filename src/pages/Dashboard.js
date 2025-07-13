@@ -49,7 +49,7 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   // handle deleted files
   const handleDeleteSuccess = (deletedId) => {
   setSentFiles(prevFiles =>
-    prevFiles.filter(file => file.id !== deletedId)
+    prevFiles.filter(file => file.id !== deletedId) // return all files except the one that has been deleted
   );
 };
 
@@ -110,12 +110,13 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
         name: item.document.document_title || item.document.file.split('/').pop(),
         type: item.document.file_type,
         size: item.document.file_size,
-        date: item.received_at,
+        date: item.document.sent_at,
         message: item.document.message || '',
         fileUrl: item.document.file,
         sharedBy: item.document.sender.office?.name || 'Unknown',
         isNew: !item.is_read
       }));
+      // console.log(item.date);
       setReceivedFiles(transformed);
       setUnreadCount(transformed.filter(f => f.isNew).length);
     } catch (err) {
@@ -145,7 +146,7 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
         name: item.document.document_title || item.document.file.split('/').pop(),
         type: item.document.file_type,
         size: item.document.file_size,
-        date: item.received_at,
+        date: item.document.sent_at,
         message: item.document.message || '',
         fileUrl: item.document.file,
         sharedBy: item.document.sender.office?.name || 'Unknown',
