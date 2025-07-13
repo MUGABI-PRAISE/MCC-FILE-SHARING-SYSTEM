@@ -12,8 +12,9 @@ import QuickActions from '../components/QuickActions';
 import FilesGrid from '../components/FilesGrid';
 import {authFetch} from '../services/FetchAuth';
 import {useNavigate} from 'react-router-dom';
+import AuthWatcher from '../services/AuthWatcher';
 
-export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
+export default function Dashboard({ userInfo, offices }) {
   const [showFileSender, setShowFileSender] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeTab, setActiveTab] = useState('recent');
@@ -224,63 +225,65 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
 
 
   return (
-    <div className="app-container">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange} 
-        setIsAuthenticated={setIsAuthenticated} 
-      />
-      
-      <div className="dashboard-top-right">
-        <UserProfile user={user} onClick={() => handleTabChange('profile')} />
-      </div>
-
-      <div className="dashboard-container">
-        <NotificationBanner notification={notification} />
-        <DashboardHeader onSendFile={() => setShowFileSender(true)} />
-
-        {showFileSender && (
-          <div className="modal-overlay">
-            <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
-          </div>
-        )}
-
-        <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
-        <SelectedActions selectedFiles={selectedFiles} />
-
-        {(loadingSentFiles || loadingReceivedFiles) && (
-          <div className="loading-indicator">Loading files...</div>
-        )}
-
-        {/* check for errors on different tabs */}
-        {error && activeTab === 'sent' && (
-          <div className="error-message">{error}</div>
-        )}
-
-        {error && activeTab === 'received' && (
-          <div className="error-message">{error}</div>
-        )}
-
-        {error && activeTab === 'recent' && (
-          <div className="error-message">{error}</div>
-        )}
-
-
-
-        <FilesGrid
-          activeTab={activeTab}
-          recentFiles={recentFiles}
-          receivedFiles={receivedFiles}
-          sentFiles={sentFiles}
-          selectedFiles={selectedFiles}
-          expandedMessages={expandedMessages}
-          onFileClick={handleFileClick}
-          onToggleMessage={toggleMessage}
+    <>
+      <AuthWatcher />
+      <div className="app-container">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
         />
+        
+        <div className="dashboard-top-right">
+          <UserProfile user={user} onClick={() => handleTabChange('profile')} />
+        </div>
 
-        <QuickActions />
-        {selectedFile && <FileModal file={selectedFile} onClose={closeModal} onDeleteSuccess={handleDeleteSuccess} />}
+        <div className="dashboard-container">
+          <NotificationBanner notification={notification} />
+          <DashboardHeader onSendFile={() => setShowFileSender(true)} />
+
+          {showFileSender && (
+            <div className="modal-overlay">
+              <FileSender offices={offices} onClose={() => setShowFileSender(false)} onSendComplete={handleSendComplete} />
+            </div>
+          )}
+
+          <DashboardTabs activeTab={activeTab} unreadCount={unreadCount} onTabChange={handleTabChange} />
+          <SelectedActions selectedFiles={selectedFiles} />
+
+          {(loadingSentFiles || loadingReceivedFiles) && (
+            <div className="loading-indicator">Loading files...</div>
+          )}
+
+          {/* check for errors on different tabs */}
+          {error && activeTab === 'sent' && (
+            <div className="error-message">{error}</div>
+          )}
+
+          {error && activeTab === 'received' && (
+            <div className="error-message">{error}</div>
+          )}
+
+          {error && activeTab === 'recent' && (
+            <div className="error-message">{error}</div>
+          )}
+
+
+
+          <FilesGrid
+            activeTab={activeTab}
+            recentFiles={recentFiles}
+            receivedFiles={receivedFiles}
+            sentFiles={sentFiles}
+            selectedFiles={selectedFiles}
+            expandedMessages={expandedMessages}
+            onFileClick={handleFileClick}
+            onToggleMessage={toggleMessage}
+          />
+
+          <QuickActions />
+          {selectedFile && <FileModal file={selectedFile} onClose={closeModal} onDeleteSuccess={handleDeleteSuccess} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

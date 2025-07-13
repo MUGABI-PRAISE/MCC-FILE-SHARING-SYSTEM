@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import '../styles/Login.css';
 import LoginSuccessAnimation from '../components/LoginSuccessAnimation';
+import { useAuth } from '../services/AuthContext';
 
-export default function Login({ setIsAuthenticated, setUserInfo}) {
+export default function Login({setUserInfo}) {
   // State for login animation trigger
   const [loginSuccess, setLoginSuccess] = useState(false);
 
@@ -20,6 +21,7 @@ export default function Login({ setIsAuthenticated, setUserInfo}) {
 
   // Navigation hook from react-router
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useAuth(); // 👈 Grab from context
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -41,26 +43,22 @@ export default function Login({ setIsAuthenticated, setUserInfo}) {
       const data = await response.json(); // Get parsed response
 
       if (response.ok) {
-        // Save token to localStorage using consistent key
-        localStorage.setItem('token', data.access); // Access token (used to protect routes)
-        localStorage.setItem('refreshToken', data.refresh); // Optionally used for refresh
-
-        // Save user info for later use (e.g., greeting, sidebar)
+        localStorage.setItem('token', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
         localStorage.setItem('firstName', data.user.first_name);
         localStorage.setItem('lastName', data.user.last_name);
         localStorage.setItem('position', data.user.position);
 
-        // save the user, and push him to App.js which will give them to any component in need of it
-        setUserInfo(data.user); // 👈 this pushes user to App.js
-        
-        setSuccess('Login successful! Redirecting...');
-        setLoginSuccess(true); // Trigger animation
-        setTimeout(() => {
-          setIsAuthenticated(true); // ✅ THEN trigger route protection logic
-          navigate('/dashboard');   // ✅ Navigate after animation
-        }, 2000);
+        setUserInfo(data.user); // Pass user up to App
 
-      } else {
+        setSuccess('Login successful! Redirecting...');
+        setLoginSuccess(true);
+
+        setTimeout(() => {
+          setIsAuthenticated(true); // ✅ From context, not props
+          navigate('/dashboard');
+        }, 2000);
+      }else {
         // Graceful error messages
         setError(
           data.errors?.non_field_errors?.[0] ||

@@ -41,7 +41,7 @@ export async function authFetch(url, options = {}) {
       // which has already happened will be shown four seconds later.
       setTimeout(() => {
         window.location.href = '/login';
-      }, 10000);
+      }, 4000);
 
       // ✅ Immediately throw error to show in UI
       throw new Error(`you're session has expired. you're required to login again`);

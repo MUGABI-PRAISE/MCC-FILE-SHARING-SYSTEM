@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
   const logout = () => {
@@ -14,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('lastName');
     localStorage.removeItem('position');
     setIsAuthenticated(false);
-    navigate('/login');
+    // ❌ Do not navigate here – let UI components handle redirect
   };
 
   return (
