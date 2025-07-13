@@ -33,8 +33,19 @@ export async function authFetch(url, options = {}) {
     } else {
       // Refresh failed: clear storage and redirect to login
       localStorage.clear();
-      window.location.href = '/login';
-      throw new Error('Session expired. Please log in again.');
+
+      // ✅ Schedule redirect in 4 seconds (non-blocking)
+      // notice the magic here. we are making the redirect to be the one to wait. because if we
+      //throw an error, the functino exits. so at this point, we have alread redirected even before
+      //throwing the error, but we delay it. so the error comes, the funciton stopos, but the redirect
+      // which has already happened will be shown four seconds later.
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 10000);
+
+      // ✅ Immediately throw error to show in UI
+      throw new Error(`you're session has expired. you're required to login again`);
+      
     }
   }
 

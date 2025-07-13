@@ -66,7 +66,7 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Something went wrong. please login again`);
       }
 
       const data = await response.json();
@@ -93,7 +93,8 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   const fetchReceivedFiles = async () => {
     try {
       setLoadingReceivedFiles(true);
-      const response = await fetch('http://localhost:8000/filesharing/documents/received/', {
+      setError(null);
+      const response = await authFetch('http://localhost:8000/filesharing/documents/received/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -101,7 +102,8 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Something went wrong. please login again`);
+        throw new Error(`HTTP error! status: ${response.status}`);// for debugging purposes
       }
 
       const data = await response.json();
@@ -120,7 +122,8 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
       setReceivedFiles(transformed);
       setUnreadCount(transformed.filter(f => f.isNew).length);
     } catch (err) {
-      console.error('Error fetching received files:', err);
+      setError(err.message || 'Failed to fetch sent files');
+      console.error('Error fetching sent files:', err);
     } finally {
       setLoadingReceivedFiles(false);
     }
@@ -129,7 +132,8 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
   // Fetch Recent Files (limit 4)
   const fetchRecentFiles = async () => {
     try {
-      const response = await fetch('http://localhost:8000/filesharing/documents/recent/', {
+      setError(null);
+      const response = await authFetch('http://localhost:8000/filesharing/documents/recent/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -137,7 +141,7 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Something went wrong. please login again`);
       }
 
       const data = await response.json();
@@ -154,7 +158,8 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
       }));
       setRecentFiles(transformed);
     } catch (err) {
-      console.error('Error fetching recent files:', err);
+      setError(err.message || 'Failed to fetch sent files');
+      console.error('Error fetching sent files:', err);
     }
   };
   
@@ -247,9 +252,20 @@ export default function Dashboard({ userInfo, offices, setIsAuthenticated }) {
           <div className="loading-indicator">Loading files...</div>
         )}
 
+        {/* check for errors on different tabs */}
         {error && activeTab === 'sent' && (
-          <div className="error-message">Error: {error}</div>
+          <div className="error-message">{error}</div>
         )}
+
+        {error && activeTab === 'received' && (
+          <div className="error-message">{error}</div>
+        )}
+
+        {error && activeTab === 'recent' && (
+          <div className="error-message">{error}</div>
+        )}
+
+
 
         <FilesGrid
           activeTab={activeTab}
