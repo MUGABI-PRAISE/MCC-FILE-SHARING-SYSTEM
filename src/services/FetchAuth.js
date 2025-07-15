@@ -1,51 +1,56 @@
-// defines a function to fetch a refresh token when the login expires.
 // authFetch.js
+// A wrapper around fetch() that adds Authorization and handles token refresh.
+
 export async function authFetch(url, options = {}) {
   const token = localStorage.getItem('token');
   const refreshToken = localStorage.getItem('refreshToken');
 
-  // Add Authorization header
+  // Detect if the request body is FormData
+  const isFormData = options.body instanceof FormData;
+
+  // Initialize headers (ensure it's always an object)
   options.headers = {
     ...(options.headers || {}),
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`, // Always include the token
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }) // Let browser set Content-Type for FormData
   };
 
+  // Perform initial request
   let response = await fetch(url, options);
 
-  // If access token expired, try refreshing
+  // Handle token expiration (HTTP 401) — try refreshing token once
   if (response.status === 401 && refreshToken) {
-    // Attempt to get a new access token
-    const refreshResponse = await fetch('http://localhost:8000/api/token/refresh/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh: refreshToken }),
-    });
+    try {
+      // Attempt to refresh access token
+      const refreshResponse = await fetch('http://localhost:8000/api/token/refresh/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken })
+      });
 
-    if (refreshResponse.ok) {
-      const data = await refreshResponse.json();
-      const newToken = data.access;
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        const newToken = data.access;
 
-      // Store new token and retry original request
-      localStorage.setItem('token', newToken);
-      options.headers.Authorization = `Bearer ${newToken}`;
-      response = await fetch(url, options);
-    } else {
-      // Refresh failed: clear storage and redirect to login
-      localStorage.clear();
+        // Store new access token
+        localStorage.setItem('token', newToken);
 
-      // ✅ Schedule redirect in 4 seconds (non-blocking)
-      // notice the magic here. we are making the redirect to be the one to wait. because if we
-      //throw an error, the functino exits. so at this point, we have alread redirected even before
-      //throwing the error, but we delay it. so the error comes, the funciton stopos, but the redirect
-      // which has already happened will be shown four seconds later.
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 4000);
+        // Retry the original request with the new token
+        options.headers.Authorization = `Bearer ${newToken}`;
+        response = await fetch(url, options);
+      } else {
+        // Refresh token is invalid or expired — log user out
+        localStorage.clear();
 
-      // ✅ Immediately throw error to show in UI
-      throw new Error(`you're session has expired. you're required to login again`);
-      
+        setTimeout(() => {
+          window.location.href = '/login'; // Redirect after 4 seconds
+        }, 4000);
+
+        throw new Error(`Your session has expired. Please log in again.`);
+      }
+    } catch (refreshError) {
+      console.error('Token refresh failed:', refreshError);
+      throw new Error('Authentication error. Please login again.');
     }
   }
 

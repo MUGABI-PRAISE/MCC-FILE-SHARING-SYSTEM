@@ -4,6 +4,7 @@ import RichTextEditor from './RichTextEditor';
 import Toast from './Toast';
 import '../styles/FileSender.css';
 import Button from './buttons/Button';
+import { authFetch } from '../services/FetchAuth';
 
 export default function FileSender({ offices, onClose, onSendComplete }) {
   // States for form input fields
@@ -45,12 +46,8 @@ export default function FileSender({ offices, onClose, onSendComplete }) {
 
     try {
       // Send POST request to your Django API (update URL if needed)
-      const response = await fetch('http://localhost:8000/filesharing/documents/send/', {
+      const response = await authFetch('http://localhost:8000/filesharing/documents/send/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Add token from local storage
-          // DO NOT set Content-Type — browser sets it automatically for FormData
-        },
         body: formData
       });
 

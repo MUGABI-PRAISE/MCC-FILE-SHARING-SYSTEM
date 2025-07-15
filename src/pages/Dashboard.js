@@ -167,7 +167,6 @@ export default function Dashboard({ userInfo, offices }) {
       setError(null);
       const response = await authFetch('http://localhost:8000/filesharing/documents/recent/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -200,7 +199,7 @@ export default function Dashboard({ userInfo, offices }) {
   /////////////////////////////////////////////////////////////////////////////////////////
   // DISPLAY A MESSAGE WHEN THE FUNCTION EXECUTES SUCCESSFULLY
   const handleSendComplete = () => {
-    setNotification({ type: 'success', message: 'File sent successfully!' });
+    // setNotification({ type: 'success', message: 'File sent successfully!' });
     fetchSentFiles(); // Refresh sent files list
   };
   
