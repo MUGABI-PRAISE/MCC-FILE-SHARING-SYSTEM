@@ -239,11 +239,20 @@ export default function Dashboard({ userInfo, offices }) {
 
   //update the unread files.
   const handleFileRead = (fileId) => {
-    // Update the file's isNew flag to false
+    // Update the file's isNew flag on received files
     setReceivedFiles(prevFiles =>
       prevFiles.map(file =>
         file.id === fileId ? { ...file, isNew: false } : file
       )
+    );
+
+    // update the read status on recent files.
+    setRecentFiles(prevFiles =>
+      prevFiles.map(file=>
+        file.id === fileId ? {...file, isNew: false} : file         
+
+      )
+      
     );
   
     // Decrease the unread count
