@@ -1,6 +1,7 @@
 import Modal from './Modal';
 import '../styles/FileModal.css';
 import { useEffect } from 'react';
+import { authFetch } from '../services/FetchAuth';
 
 
 export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }) {
@@ -20,19 +21,20 @@ useEffect(() => {
     // - It's still marked as 'new' (unread)
     if (file.sharedBy && file.isNew) {
       try {
-        const response = await fetch(`http://localhost:8000/filesharing/documents/mark-as-read/${file.id}/`, {
+        const response = await authFetch(`http://localhost:8000/filesharing/documents/markasread/${file.id}/`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
-          console.warn('Failed to mark file as read');
-        } else {
-          console.log(`✅ Marked file ${file.id} as read on the backend`);
-
+          const errorText = await response.text();  // 👈 grab the error from backend
+          console.error(`❌ Failed to mark file as read: ${response.status} - ${errorText}`);
+          return;        
+        }else {
+          alert(`file ${file.id} has been marked read `);
+          console.log(`file ${file.id} has been marked read`);
           // 🔁 Notify parent so it updates the local state too (received & recent lists)
           if (onFileRead) {
             onFileRead(file.id);

@@ -20,15 +20,15 @@ export default function Dashboard({ userInfo, offices }) {
   const [activeTab, setActiveTab] = useState('recent');
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [notification, setNotification] = useState(null);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [expandedMessages, setExpandedMessages] = useState({});
   const [sentFiles, setSentFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
-  // const [recentFiles, setRecentFiles] = useState([]);
   const [loadingSentFiles, setLoadingSentFiles] = useState(false);
   const [loadingReceivedFiles, setLoadingReceivedFiles] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const unreadCount = receivedFiles.filter(f => f.isNew).length;
+
 
   // set the user's name
   const user = userInfo ? {
@@ -44,7 +44,7 @@ export default function Dashboard({ userInfo, offices }) {
 
   - It runs **after** the component renders (by default).
   - Used for performing side effects: 
-      e.g., data fetching, subscriptions, timers, DOM updates, etc.
+      e.g., data fetchinunreadg, subscriptions, timers, DOM updates, etc.
   - Accepts two arguments:
       1. A function to run (the effect).
       2. A dependency array (to control when it runs).
@@ -62,6 +62,7 @@ export default function Dashboard({ userInfo, offices }) {
   //fetch files on mount
   useEffect(() => {
     fetchReceivedFiles(); // Load unread count immediately (for badge)
+    console.log(`effect hook has ran with ${unreadCount}`);
   }, []);
   
   // Automatically fetch data when tab changes
@@ -129,7 +130,6 @@ export default function Dashboard({ userInfo, offices }) {
       setError(null);
       const response = await authFetch('http://localhost:8000/filesharing/documents/received/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -152,7 +152,7 @@ export default function Dashboard({ userInfo, offices }) {
         isNew: !item.is_read
       }));
       setReceivedFiles(transformed);
-      setUnreadCount(transformed.filter(f => f.isNew).length);
+      // setUnreadCount(transformed.filter(f => f.isNew).length);
     } catch (err) {
       setError(err.message || 'Failed to fetch sent files');
       console.error('Error fetching sent files:', err);
@@ -212,16 +212,16 @@ export default function Dashboard({ userInfo, offices }) {
     setSelectedFile(null);
   };
 
-  const handleFileSelect = (fileId, isNew) => {
-    setSelectedFiles(prev =>
-      prev.includes(fileId)
-        ? prev.filter(id => id !== fileId)
-        : [...prev, fileId]
-    );
-    if (isNew) {
-      setUnreadCount(prev => prev - 1);
-    }
-  };
+  // const handleFileSelect = (fileId, isNew) => {
+  //   setSelectedFiles(prev =>
+  //     prev.includes(fileId)
+  //       ? prev.filter(id => id !== fileId)
+  //       : [...prev, fileId]
+  //   );
+  //   if (isNew) {
+  //     setUnreadCount(prev => prev - 1);
+  //   }
+  // };
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -243,8 +243,9 @@ export default function Dashboard({ userInfo, offices }) {
         file.id === fileId ? { ...file, isNew: false } : file
       )
     );
-  
-    setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+    console.log(`currently on the front end: ${unreadCount}`);
+    // setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+    console.log(`after updating : ${unreadCount}`);
   };
   
   
