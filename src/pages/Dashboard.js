@@ -24,7 +24,7 @@ export default function Dashboard({ userInfo, offices }) {
   const [expandedMessages, setExpandedMessages] = useState({});
   const [sentFiles, setSentFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
-  const [recentFiles, setRecentFiles] = useState([]);
+  // const [recentFiles, setRecentFiles] = useState([]);
   const [loadingSentFiles, setLoadingSentFiles] = useState(false);
   const [loadingReceivedFiles, setLoadingReceivedFiles] = useState(false);
   const [error, setError] = useState(null);
@@ -71,7 +71,7 @@ export default function Dashboard({ userInfo, offices }) {
     } else if (activeTab === 'received') {
       fetchReceivedFiles();
     } else if (activeTab === 'recent') {
-      fetchRecentFiles();
+      // fetchRecentFiles();
     }
   }, [activeTab]);
   // fetch the user
@@ -162,37 +162,37 @@ export default function Dashboard({ userInfo, offices }) {
   };
 
   // Fetch Recent Files (limit 4)
-  const fetchRecentFiles = async () => {
-    try {
-      setError(null);
-      const response = await authFetch('http://localhost:8000/filesharing/documents/recent/', {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+  // const fetchRecentFiles = async () => {
+  //   try {
+  //     setError(null);
+  //     const response = await authFetch('http://localhost:8000/filesharing/documents/recent/', {
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       }
+  //     });
 
-      if (!response.ok) {
-        throw new Error(`Something went wrong. please login again`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Something went wrong. please login again`);
+  //     }
 
-      const data = await response.json();
-      const transformed = data.map(item => ({
-        id: item.id,
-        name: item.document.document_title || item.document.file.split('/').pop(),
-        type: item.document.file_type,
-        size: item.document.file_size,
-        date: item.document.sent_at,
-        message: item.document.message || '',
-        fileUrl: item.document.file,
-        sharedBy: item.document.sender.office?.name || 'Unknown',
-        isNew: !item.is_read
-      }));
-      setRecentFiles(transformed);
-    } catch (err) {
-      setError(err.message || 'Failed to fetch sent files');
-      console.error('Error fetching sent files:', err);
-    }
-  };
+  //     const data = await response.json();
+  //     const transformed = data.map(item => ({
+  //       id: item.id,
+  //       name: item.document.document_title || item.document.file.split('/').pop(),
+  //       type: item.document.file_type,
+  //       size: item.document.file_size,
+  //       date: item.document.sent_at,
+  //       message: item.document.message || '',
+  //       fileUrl: item.document.file,
+  //       sharedBy: item.document.sender.office?.name || 'Unknown',
+  //       isNew: !item.is_read
+  //     }));
+  //     setRecentFiles(transformed);
+  //   } catch (err) {
+  //     setError(err.message || 'Failed to fetch sent files');
+  //     console.error('Error fetching sent files:', err);
+  //   }
+  // };
   
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                      OTHER FUNCTIONS                                                 //
@@ -225,7 +225,7 @@ export default function Dashboard({ userInfo, offices }) {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === 'received') setUnreadCount(0);
+    if (tab === 'received');
     if (tab === 'profile') console.log('Navigating to user profile...');
   };
 
@@ -238,26 +238,20 @@ export default function Dashboard({ userInfo, offices }) {
 
   //update the unread files.
   const handleFileRead = (fileId) => {
-    // Update the file's isNew flag on received files
     setReceivedFiles(prevFiles =>
       prevFiles.map(file =>
         file.id === fileId ? { ...file, isNew: false } : file
       )
     );
-
-    // update the read status on recent files.
-    setRecentFiles(prevFiles =>
-      prevFiles.map(file=>
-        file.id === fileId ? {...file, isNew: false} : file         
-
-      )
-      
-    );
   
-    // Decrease the unread count
     setUnreadCount(prevCount => Math.max(0, prevCount - 1));
   };
   
+  
+  const recentFiles = receivedFiles
+  .slice()
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
+  .slice(0, 4);
 
 
   return (

@@ -86,6 +86,7 @@ export default function FileSender({ offices, onClose, onSendComplete }) {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+          duration={5000}
         />
       )}
 

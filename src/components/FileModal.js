@@ -12,36 +12,47 @@ export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }
   //    USE EFFECT HOOKS                                                                    //
   ///////////////////////////////////////////////////////////////////////////////////////////
   // mark the file as complete
-  useEffect(() => {
-    const markAsRead = async () => {
-      // Only mark as read if it's a received file and it's new
-      if (file.sharedBy && file.isNew) {
-        try {
-          const response = await fetch(`http://localhost:8000/filesharing/documents/mark-as-read/${file.id}/`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json',
-            },
-          });
-  
-          if (!response.ok) {
-            console.warn('Failed to mark file as read');
-          } else {
-            console.log(`Marked file ${file.id} as read`);
-            //GUARD CLAUSE. check if the function exists and notify the parent that the file has been marked as read
-            if (onFileRead) {
-              onFileRead(file.id); // ✅ notify parent
-            }
+  // useEffect to mark the file as read when modal opens
+useEffect(() => {
+  const markAsRead = async () => {
+    // ✅ Only mark as read if:
+    // - It's a received file (has 'sharedBy')
+    // - It's still marked as 'new' (unread)
+    if (file.sharedBy && file.isNew) {
+      try {
+        const response = await fetch(`http://localhost:8000/filesharing/documents/mark-as-read/${file.id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.warn('Failed to mark file as read');
+        } else {
+          console.log(`✅ Marked file ${file.id} as read on the backend`);
+
+          // 🔁 Notify parent so it updates the local state too (received & recent lists)
+          if (onFileRead) {
+            onFileRead(file.id);
           }
-        } catch (error) {
-          console.error('Error marking file as read:', error);
         }
+      } catch (error) {
+        console.error('❌ Error marking file as read:', error);
       }
-    };
-  
-    markAsRead();
-  }, [file]);
+    }
+  };
+
+  markAsRead();
+
+// 📌 Dependency array includes file.id, file.isNew, and file.sharedBy
+// This ensures that:
+// - The effect runs when a **different file is opened** (new ID)
+// - The effect re-runs if the file becomes unread again (e.g., re-fetched)
+// - We avoid stale or skipped updates due to shallow object comparison
+}, [file.id, file.isNew, file.sharedBy]);
+
   
   /////////////////////////////////////////////////////////////////////////////////////////////
   //            API CALLS                                                                   //
