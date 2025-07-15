@@ -1,12 +1,51 @@
 import Modal from './Modal';
 import '../styles/FileModal.css';
+import { useEffect } from 'react';
 
-export default function FileModal({ file, onClose, onDeleteSuccess }) {
+
+export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }) {
   const isPDF = file.type === 'pdf';
   const isText = file.type === 'txt';
   const fileUrl = file.fileUrl;
 
-
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  //    USE EFFECT HOOKS                                                                    //
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // mark the file as complete
+  useEffect(() => {
+    const markAsRead = async () => {
+      // Only mark as read if it's a received file and it's new
+      if (file.sharedBy && file.isNew) {
+        try {
+          const response = await fetch(`http://localhost:8000/filesharing/documents/mark-as-read/${file.id}/`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          });
+  
+          if (!response.ok) {
+            console.warn('Failed to mark file as read');
+          } else {
+            console.log(`Marked file ${file.id} as read`);
+            //GUARD CLAUSE. check if the function exists and notify the parent that the file has been marked as read
+            if (onFileRead) {
+              onFileRead(file.id); // ✅ notify parent
+            }
+          }
+        } catch (error) {
+          console.error('Error marking file as read:', error);
+        }
+      }
+    };
+  
+    markAsRead();
+  }, [file]);
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  //            API CALLS                                                                   //
+  ///////////////////////////////////////////////////////////////////////////////////////////
   // delete a file
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;

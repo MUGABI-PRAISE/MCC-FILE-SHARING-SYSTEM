@@ -35,6 +35,35 @@ export default function Dashboard({ userInfo, offices }) {
     ...userInfo,
     name: `${userInfo.first_name} ${userInfo.last_name}`
   } : null;
+
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  //    USE EFFECT HOOKS                                                                    //
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  /*
+  useEffect Hook - React's side effect handler.
+
+  - It runs **after** the component renders (by default).
+  - Used for performing side effects: 
+      e.g., data fetching, subscriptions, timers, DOM updates, etc.
+  - Accepts two arguments:
+      1. A function to run (the effect).
+      2. A dependency array (to control when it runs).
+
+  How it behaves:
+  - If dependency array is empty: runs once after initial render (like componentDidMount).
+  - If dependencies are listed: runs after every render where any listed value changes.
+  - If no dependency array: runs after every render.
+  - Can return a cleanup function to run before re-running or when unmounting.
+
+  Think of it as:
+  "Do this *after* rendering, and maybe clean up before doing it again."
+*/
+
+  //fetch files on mount
+  useEffect(() => {
+    fetchReceivedFiles(); // Load unread count immediately (for badge)
+  }, []);
+  
   // Automatically fetch data when tab changes
   useEffect(() => {
     if (activeTab === 'sent') {
@@ -54,6 +83,9 @@ export default function Dashboard({ userInfo, offices }) {
   );
 };
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  //                              API CALLS                                           //
+  /////////////////////////////////////////////////////////////////////////////////////
   // Fetch Sent Files
   const fetchSentFiles = async () => {
     try {
@@ -119,7 +151,6 @@ export default function Dashboard({ userInfo, offices }) {
         sharedBy: item.document.sender.office?.name || 'Unknown',
         isNew: !item.is_read
       }));
-      // console.log(item.date);
       setReceivedFiles(transformed);
       setUnreadCount(transformed.filter(f => f.isNew).length);
     } catch (err) {
@@ -164,33 +195,16 @@ export default function Dashboard({ userInfo, offices }) {
     }
   };
   
-
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  //                      OTHER FUNCTIONS                                                 //
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // DISPLAY A MESSAGE WHEN THE FUNCTION EXECUTES SUCCESSFULLY
   const handleSendComplete = () => {
     setNotification({ type: 'success', message: 'File sent successfully!' });
     fetchSentFiles(); // Refresh sent files list
   };
-  //logout the user
-  // const handleLogout = () => {
-  //     // 1. Clear JWT token from localStorage
-  //     localStorage.removeItem('token');
-  //     localStorage.removeItem('refreshToken');
-  //     localStorage.removeItem('firstName');
-  //     localStorage.removeItem('lastName');
-  //     localStorage.removeItem('position');
-  //     setIsAuthenticated(false); // ✅ Re-render routes and force redirect
-  //     // 2. (Optional) Call backend logout endpoint if using blacklisting
-  //     // fetch('http://localhost:8000/api/logout/', {
-  //     //   method: 'POST',
-  //     //   headers: {
-  //     //     'Authorization': `Bearer ${localStorage.getItem('token')}`,
-  //     //     'Content-Type': 'application/json'
-  //     //   }
-  //     // });
   
-  //     // 3. Redirect user to login page
-  //     navigate("/login", { replace: true });
-  //   };
-    
+  
   const handleFileClick = (file) => {
     setSelectedFile(file);
   };
@@ -222,6 +236,20 @@ export default function Dashboard({ userInfo, offices }) {
       [fileId]: !prev[fileId]
     }));
   };
+
+  //update the unread files.
+  const handleFileRead = (fileId) => {
+    // Update the file's isNew flag to false
+    setReceivedFiles(prevFiles =>
+      prevFiles.map(file =>
+        file.id === fileId ? { ...file, isNew: false } : file
+      )
+    );
+  
+    // Decrease the unread count
+    setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+  };
+  
 
 
   return (
@@ -281,7 +309,14 @@ export default function Dashboard({ userInfo, offices }) {
           />
 
           <QuickActions />
-          {selectedFile && <FileModal file={selectedFile} onClose={closeModal} onDeleteSuccess={handleDeleteSuccess} />}
+          {selectedFile && (
+            <FileModal 
+              file={selectedFile} 
+              onClose={closeModal} 
+              onDeleteSuccess={handleDeleteSuccess} 
+              onFileRead={handleFileRead}
+            />
+          )}
         </div>
       </div>
     </>
