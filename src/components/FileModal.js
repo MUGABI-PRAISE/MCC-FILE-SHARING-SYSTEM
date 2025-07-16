@@ -1,63 +1,83 @@
-import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import '../styles/FileModal.css';
+import { useEffect } from 'react';
 import { authFetch } from '../services/FetchAuth';
 
+
 export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }) {
-  const [showFullMessage, setShowFullMessage] = useState(false);
   const isPDF = file.type === 'pdf';
   const isText = file.type === 'txt';
   const fileUrl = file.fileUrl;
 
-  // Mark file as read when modal opens
-  useEffect(() => {
-    const markAsRead = async () => {
-      if (file.sharedBy && file.isNew) {
-        try {
-          const response = await authFetch(`http://localhost:8000/filesharing/documents/markasread/${file.id}/`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  //    USE EFFECT HOOKS                                                                    //
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // mark the file as complete
+  // useEffect to mark the file as read when modal opens
+useEffect(() => {
+  const markAsRead = async () => {
+    // ✅ Only mark as read if:
+    // - It's a received file (has 'sharedBy')
+    // - It's still marked as 'new' (unread)
+    if (file.sharedBy && file.isNew) {
+      try {
+        const response = await authFetch(`http://localhost:8000/filesharing/documents/markasread/${file.id}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`❌ Failed to mark file as read: ${response.status} - ${errorText}`);
-            return;        
-          } else {
-            console.log(`file ${file.id} has been marked read`);
-            if (onFileRead) {
-              onFileRead(file.id);
-            }
+        if (!response.ok) {
+          const errorText = await response.text();  // 👈 grab the error from backend
+          console.error(`❌ Failed to mark file as read: ${response.status} - ${errorText}`);
+          return;        
+        }else {
+          // alert(`file ${file.id} has been marked read `);
+          console.log(`file ${file.id} has been marked read`);
+          // 🔁 Notify parent so it updates the local state too (received & recent lists)
+          if (onFileRead) {
+            onFileRead(file.id);
           }
-        } catch (error) {
-          console.error('❌ Error marking file as read:', error);
         }
+      } catch (error) {
+        console.error('❌ Error marking file as read:', error);
       }
-    };
-    markAsRead();
-  }, [file.id, file.isNew, file.sharedBy]);
+    }
+  };
 
-  // Delete file handler
+  markAsRead();
+
+// 📌 Dependency array includes file.id, file.isNew, and file.sharedBy
+// This ensures that:
+// - The effect runs when a **different file is opened** (new ID)
+// - The effect re-runs if the file becomes unread again (e.g., re-fetched)
+// - We avoid stale or skipped updates due to shallow object comparison
+}, [file.id, file.isNew, file.sharedBy]);
+
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  //            API CALLS                                                                   //
+  ///////////////////////////////////////////////////////////////////////////////////////////
+  // delete a file
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
 
     try {
+      console.log("Attempting to delete file with ID:", file.id);
       const response = await fetch(`http://localhost:8000/filesharing/documents/${file.id}/delete/`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // if you're using JWT
           'Content-Type': 'application/json',
         },
       });
 
       if (response.status === 204) {
         alert('File deleted successfully.');
-        onClose();
-        if (onDeleteSuccess) onDeleteSuccess(file.id);
-      } else {
-        alert(`You're not allowed to delete this file`);
+        onClose(); // Close the modal
+        if (onDeleteSuccess) onDeleteSuccess(file.id); // Notify parent!
+      } else {alert(`you're not allowed to delete this file`);
       }
     } catch (err) {
       console.error(err);
@@ -82,25 +102,15 @@ export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }
           <span>{file.date}</span>
         </div>
       </div>
-  
+
       <div className="modal-body">
         {file.message && (
           <div className="modal-message">
             <h4>Message:</h4>
-            <div className={`message-content ${!showFullMessage && file.message.split('\n').length > 30 ? 'truncated' : ''}`}>
-              {file.message}
-            </div>
-            {file.message.split('\n').length > 30 && (
-              <button 
-                className="read-more-btn" 
-                onClick={() => setShowFullMessage(!showFullMessage)}
-              >
-                {showFullMessage ? 'Show less' : 'Read more...'}
-              </button>
-            )}
+            <p>{file.message}</p>
           </div>
         )}
-  
+
         <div className="modal-preview">
           <div className="file-preview-container">
             {['pdf', 'txt'].includes(file.type) ? (
@@ -128,7 +138,7 @@ export default function FileModal({ file, onClose, onDeleteSuccess, onFileRead }
           </div>
         </div>
       </div>
-  
+
       <div className="modal-actions">
         <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="modal-button view">
           🔍 View Full
