@@ -20,6 +20,8 @@
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #eee;
   margin-bottom: 1.5rem;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+
 }
 
 .modal-file-icon {
@@ -50,6 +52,14 @@
 .modal-file-icon .ppt { background-color: #f39c12; }
 .modal-file-icon .txt { background-color: #95a5a6; }
 .modal-file-icon .zip { background-color: #9b59b6; }
+
+.modal-header h2 {
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
 
 .modal-file-meta {
   display: flex;
@@ -185,4 +195,42 @@
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+
+/* Add these new rules to your existing FileModal.css */
+.message-content {
+  white-space: pre-wrap; /* Preserve line breaks */
+  max-height: none; /* Default full height */
+}
+
+.message-content.truncated {
+  max-height: 7.5em; /* ~30 lines (1em ≈ 4 lines) */
+  overflow: hidden;
+  position: relative;
+}
+
+.message-content.truncated::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2em;
+  background: linear-gradient(to bottom, rgba(248,249,250,0), rgba(248,249,250,1));
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.read-more-btn:hover {
+  text-decoration: underline;
 }

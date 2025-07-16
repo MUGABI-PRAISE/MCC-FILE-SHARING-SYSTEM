@@ -282,7 +282,7 @@ export default function Dashboard({ userInfo, offices }) {
             onToggleMessage={toggleMessage}
           />
 
-          <QuickActions />
+          {/* <QuickActions /> */}
           {selectedFile && (
             <FileModal 
               file={selectedFile} 

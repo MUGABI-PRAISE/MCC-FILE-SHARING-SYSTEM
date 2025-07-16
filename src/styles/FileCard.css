@@ -1,0 +1,38 @@
+/* Default state: Force single-line truncation */
+.message-preview {
+  white-space: nowrap;        /* Force single line */
+  overflow: hidden;
+  text-overflow: ellipsis;    /* Show ... if text overflows */
+  max-width: 100%;           /* Ensure it respects container width */
+  display: block;
+}
+
+/* Expanded state: Allow multi-line clamping */
+.file-message.expanded .message-preview {
+  white-space: normal;        /* Allow wrapping */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;      /* Show up to 3 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(3 * 1.5em); /* Fallback height (3 lines) */
+  line-height: 1.5;           /* Ensure consistent spacing */
+}
+
+/* If text is still too long after 3 lines, show "Open file" hint */
+.file-message.expanded .message-preview.has-more-content {
+  -webkit-line-clamp: 3;      /* Still clamp at 3 lines */
+}
+
+/* "Open file" hint styling (appears only when needed) */
+.read-more-hint {
+  margin-top: 0.25rem;
+  font-style: italic;
+  color: var(--light-text);
+  font-size: 0.75rem;
+  display: none;              /* Hidden by default */
+}
+
+.file-message.expanded .read-more-hint {
+  display: block;             /* Only show when expanded */
+}

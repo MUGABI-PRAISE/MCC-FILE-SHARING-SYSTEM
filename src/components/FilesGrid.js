@@ -1,4 +1,5 @@
 import FileCard from './FileCard';
+// import '../styles/FilesGrid.css';
 
 export default function FilesGrid({ activeTab, recentFiles, receivedFiles, sentFiles, selectedFiles, expandedMessages, onFileClick, onToggleMessage }) {
   const files = activeTab === 'recent' ? recentFiles : activeTab === 'received' ? receivedFiles : sentFiles;

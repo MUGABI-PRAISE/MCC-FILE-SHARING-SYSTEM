@@ -104,12 +104,23 @@ useEffect(() => {
       </div>
 
       <div className="modal-body">
-        {file.message && (
-          <div className="modal-message">
-            <h4>Message:</h4>
-            <p>{file.message}</p>
-          </div>
-        )}
+      // Replace JUST the modal-message section in your existing FileModal.js
+{file.message && (
+  <div className="modal-message">
+    <h4>Message:</h4>
+    <div className={`message-content ${!showFullMessage ? 'truncated' : ''}`}>
+      {file.message}
+    </div>
+    {file.message.split('\n').length > 30 && (
+      <button 
+        className="read-more-btn" 
+        onClick={() => setShowFullMessage(!showFullMessage)}
+      >
+        {showFullMessage ? 'Show less' : 'Read more...'}
+      </button>
+    )}
+  </div>
+)}
 
         <div className="modal-preview">
           <div className="file-preview-container">

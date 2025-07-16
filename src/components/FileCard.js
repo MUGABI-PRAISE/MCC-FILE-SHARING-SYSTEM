@@ -1,3 +1,4 @@
+import '../styles/FileCard.css';
 export default function FileCard({ file, isSelected, isExpanded, onClick, onToggleMessage }) {
     return (
       <div className={`file-card ${isSelected ? 'selected' : ''}`} onClick={onClick}>
@@ -14,13 +15,20 @@ export default function FileCard({ file, isSelected, isExpanded, onClick, onTogg
           {file.sharedBy && <p className="shared-by">Shared by: {file.sharedBy}</p>}
           <p className="file-date">{file.date}</p>
           {file.message && (
-            <div className={`file-message ${isExpanded ? 'expanded' : ''}`} onClick={onToggleMessage}>
+            <div
+              className={`file-message ${isExpanded ? 'expanded' : ''}`}
+              onClick={onToggleMessage}
+            >
               <div className="message-preview">
-                {isExpanded ? file.message : `${file.message.substring(0, 30)}${file.message.length > 30 ? '...' : ''}`}
+                {`${file.message.substring(0, 100)}${file.message.length > 100 ? '...' : ''}`}
               </div>
+              {isExpanded && (
+                <div className="read-more-hint">Click the file to read more</div>
+              )}
               <span className="toggle-message">{isExpanded ? '▲' : '▼'}</span>
             </div>
           )}
+
         </div>
         <div className="file-options">
           <button className="option-button download">↓</button>
