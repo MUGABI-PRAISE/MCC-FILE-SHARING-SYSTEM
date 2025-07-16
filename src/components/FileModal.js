@@ -21,7 +21,7 @@ useEffect(() => {
     // - It's still marked as 'new' (unread)
     if (file.sharedBy && file.isNew) {
       try {
-        const response = await authFetch(`http://localhost:8000/filesharing/documents/markasread/${file.id}/`, {
+        const response = await authFetch(`http://10.42.0.1:8000/filesharing/documents/markasread/${file.id}/`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ useEffect(() => {
 
     try {
       console.log("Attempting to delete file with ID:", file.id);
-      const response = await fetch(`http://localhost:8000/filesharing/documents/${file.id}/delete/`, {
+      const response = await fetch(`http://10.42.0.1:8000/filesharing/documents/${file.id}/delete/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`, // if you're using JWT

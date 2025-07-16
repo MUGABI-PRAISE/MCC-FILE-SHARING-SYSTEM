@@ -181,7 +181,7 @@ export default function App() {
   useEffect(() => {
     async function fetchOffices() {
       try {
-        const res = await fetch('http://localhost:8000/filesharing/offices/');
+        const res = await fetch('http://10.42.0.1:8000/filesharing/offices/');
         const data = await res.json();
         setOffices(data);
       } catch (err) {

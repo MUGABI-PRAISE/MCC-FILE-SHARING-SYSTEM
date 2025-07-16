@@ -32,7 +32,7 @@ export default function Login({setUserInfo}) {
 
     try {
       // Call backend login API
-      const response = await fetch('http://localhost:8000/filesharing/login/', {
+      const response = await fetch('http://10.42.0.1:8000/filesharing/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

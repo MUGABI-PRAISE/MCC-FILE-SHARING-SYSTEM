@@ -99,7 +99,7 @@ export default function Signup({offices}) {
         }
       }
 
-      const response = await fetch('http://localhost:8000/filesharing/signup/', {
+      const response = await fetch('http://10.42.0.1:8000/filesharing/signup/', {
         method: 'POST',
         body: formDataToSend
       });

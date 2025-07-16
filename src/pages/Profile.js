@@ -55,7 +55,7 @@ function Profile({ user, setIsAuthenticated }) {
     delete updatedData.username; // if username not editable on backend
 
     // Make PATCH request to update user
-    const response = await fetch('localhost:8000/filesharing/me/', {
+    const response = await fetch('10.42.0.1:8000/filesharing/me/', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

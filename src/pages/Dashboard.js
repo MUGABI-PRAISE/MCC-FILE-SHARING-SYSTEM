@@ -94,7 +94,7 @@ export default function Dashboard({ userInfo, offices }) {
     try {
       setLoadingSentFiles(true);
       setError(null);
-      const response = await authFetch('http://localhost:8000/filesharing/documents/sent/', {
+      const response = await authFetch('http://10.42.0.1:8000/filesharing/documents/sent/', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ export default function Dashboard({ userInfo, offices }) {
     try {
       setLoadingReceivedFiles(true);
       setError(null);
-      const response = await authFetch('http://localhost:8000/filesharing/documents/received/', {
+      const response = await authFetch('http://10.42.0.1:8000/filesharing/documents/received/', {
         headers: {
           'Content-Type': 'application/json'
         }
