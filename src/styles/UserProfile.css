@@ -17,8 +17,8 @@
   
   /* New positioning */
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: -10px;
+  top: 80px;
   
   /* Text handling */
   max-width: min(300px, 30vw); /* Flexible but limited width */
@@ -66,7 +66,7 @@
 }
 
 /* 🔻 Responsive Rule to Hide on Small Screens */
-@media (max-width: 768px) {
+@media (max-width: 850px) {
   .user-profile {
     display: none !important;
   }
