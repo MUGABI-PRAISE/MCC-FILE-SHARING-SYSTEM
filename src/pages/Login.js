@@ -49,6 +49,8 @@ export default function Login({setUserInfo}) {
         localStorage.setItem('lastName', data.user.last_name);
         localStorage.setItem('position', data.user.position);
 
+        //store use data in local storage
+        localStorage.setItem('userInfo', JSON.stringify(data.user));
         setUserInfo(data.user); // Pass user up to App
 
         setSuccess('Login successful! Redirecting...');

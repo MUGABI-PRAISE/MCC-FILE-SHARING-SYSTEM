@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('firstName');
     localStorage.removeItem('lastName');
     localStorage.removeItem('position');
+    localStorage.removeItem('userInfo');  
     setIsAuthenticated(false);
     // ❌ Do not navigate here – let UI components handle redirect
   };

@@ -31,10 +31,12 @@ export default function Dashboard({ userInfo, offices }) {
 
 
   // set the user's name
-  const user = userInfo ? {
-    ...userInfo,
-    name: `${userInfo.first_name} ${userInfo.last_name}`
+  const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+  const user = storedUser ? {
+    ...storedUser,
+    name: `${storedUser.first_name} ${storedUser.last_name}`
   } : null;
+
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   //    USE EFFECT HOOKS                                                                    //
@@ -161,38 +163,7 @@ export default function Dashboard({ userInfo, offices }) {
     }
   };
 
-  // Fetch Recent Files (limit 4)
-  // const fetchRecentFiles = async () => {
-  //   try {
-  //     setError(null);
-  //     const response = await authFetch('http://localhost:8000/filesharing/documents/recent/', {
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       }
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error(`Something went wrong. please login again`);
-  //     }
-
-  //     const data = await response.json();
-  //     const transformed = data.map(item => ({
-  //       id: item.id,
-  //       name: item.document.document_title || item.document.file.split('/').pop(),
-  //       type: item.document.file_type,
-  //       size: item.document.file_size,
-  //       date: item.document.sent_at,
-  //       message: item.document.message || '',
-  //       fileUrl: item.document.file,
-  //       sharedBy: item.document.sender.office?.name || 'Unknown',
-  //       isNew: !item.is_read
-  //     }));
-  //     setRecentFiles(transformed);
-  //   } catch (err) {
-  //     setError(err.message || 'Failed to fetch sent files');
-  //     console.error('Error fetching sent files:', err);
-  //   }
-  // };
+  
   
   ///////////////////////////////////////////////////////////////////////////////////////////
   //                      OTHER FUNCTIONS                                                 //

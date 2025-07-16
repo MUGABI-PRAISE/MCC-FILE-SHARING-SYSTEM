@@ -33,7 +33,7 @@ useEffect(() => {
           console.error(`❌ Failed to mark file as read: ${response.status} - ${errorText}`);
           return;        
         }else {
-          alert(`file ${file.id} has been marked read `);
+          // alert(`file ${file.id} has been marked read `);
           console.log(`file ${file.id} has been marked read`);
           // 🔁 Notify parent so it updates the local state too (received & recent lists)
           if (onFileRead) {
