@@ -6,12 +6,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('firstName');
-    localStorage.removeItem('lastName');
-    localStorage.removeItem('position');
-    localStorage.removeItem('userInfo');  
+    localStorage.clear() // remove everything from local storage 
     setIsAuthenticated(false);
     // ❌ Do not navigate here – let UI components handle redirect
   };

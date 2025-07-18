@@ -236,7 +236,7 @@ export default function Dashboard({ userInfo, offices }) {
         />
         
         <div className="dashboard-top-right">
-          <UserProfile user={user} onClick={() => handleTabChange('profile')} />
+          <UserProfile user={user} onClick={() => navigate('profile')} />
         </div>
 
         <div className="dashboard-container">

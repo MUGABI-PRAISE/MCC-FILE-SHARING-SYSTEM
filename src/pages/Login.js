@@ -5,7 +5,7 @@ import LoginSuccessAnimation from '../components/LoginSuccessAnimation';
 import { useAuth } from '../services/AuthContext';
 
 export default function Login({setUserInfo}) {
-  // State for login animation trigger
+  // StateetReceived for login animation trigger
   const [loginSuccess, setLoginSuccess] = useState(false);
 
   // State for user credentials
@@ -51,8 +51,7 @@ export default function Login({setUserInfo}) {
 
         //store use data in local storage
         localStorage.setItem('userInfo', JSON.stringify(data.user));
-        setUserInfo(data.user); // Pass user up to App
-
+        setUserInfo(data.user);
         setSuccess('Login successful! Redirecting...');
         setLoginSuccess(true);
 
