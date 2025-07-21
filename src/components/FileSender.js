@@ -46,7 +46,7 @@ export default function FileSender({ offices, onClose, onSendComplete }) {
 
     try {
       // Send POST request to your Django API (update URL if needed)
-      const response = await authFetch('http://10.42.0.1:8000/filesharing/documents/send/', {
+      const response = await authFetch(`${process.env.REACT_APP_API_URL}/filesharing/documents/send/`, {
         method: 'POST',
         body: formData
       });

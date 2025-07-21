@@ -99,7 +99,7 @@ export default function Signup({offices}) {
         }
       }
 
-      const response = await fetch('http://10.42.0.1:8000/filesharing/signup/', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/filesharing/signup/`, {
         method: 'POST',
         body: formDataToSend
       });
