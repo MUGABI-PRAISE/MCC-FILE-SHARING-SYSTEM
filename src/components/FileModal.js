@@ -84,7 +84,7 @@ useEffect(() => {
       alert('Failed to connect to the server.');
     }
   };
-
+  console.log(file.fileUrl);
   return (
     <Modal onClose={onClose}>
       <div className="modal-header">
@@ -116,6 +116,7 @@ useEffect(() => {
             {['pdf', 'txt'].includes(file.type) ? (
               <iframe
                 src={file.fileUrl}
+                
                 width="100%"
                 height="400px"
                 title="File Preview"
