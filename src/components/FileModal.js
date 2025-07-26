@@ -84,7 +84,7 @@ useEffect(() => {
       alert('Failed to connect to the server.');
     }
   };
-  console.log(file.fileUrl);
+  console.log(` teh file url is ${file.fileUrl}`);
   return (
     <Modal onClose={onClose}>
       <div className="modal-header">

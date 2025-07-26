@@ -76,6 +76,8 @@ export default function App() {
     async function fetchOffices() {
       try {
         const res = await fetch(`${process.env.REACT_APP_API_URL}/filesharing/offices/`);
+        console.log(`the path being sent: ${process.env.REACT_APP_API_URL}/filesharing/offices/`);
+
         const data = await res.json();
         setOffices(data);
       } catch (err) {

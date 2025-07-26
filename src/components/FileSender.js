@@ -45,7 +45,7 @@ export default function FileSender({ offices, onClose, onSendComplete }) {
     }
 
     try {
-      // Send POST request to your Django API (update URL if needed)
+      // Send POST request to your Django API
       const response = await authFetch(`${process.env.REACT_APP_API_URL}/filesharing/documents/send/`, {
         method: 'POST',
         body: formData
@@ -55,6 +55,7 @@ export default function FileSender({ offices, onClose, onSendComplete }) {
       if (response.ok) {
         const data = await response.json();
         setToast({ message: 'File sent successfully!', type: 'success' });
+        console.log('file sent successfully');
         onSendComplete(data);       // Notify parent about the successful submission
         setTimeout(onClose, 1500);  // Close the modal after a short delay
       } else {
