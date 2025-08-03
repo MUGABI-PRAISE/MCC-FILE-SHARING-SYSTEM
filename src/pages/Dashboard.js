@@ -113,7 +113,7 @@ export default function Dashboard({ userInfo, offices }) {
         size: file.file_size,
         date: file.sent_at,
         message: file.message || '',
-        fileUrl: file.file
+        fileUrl: file.file_url
       }));
 
       setSentFiles(transformed);
@@ -149,7 +149,7 @@ export default function Dashboard({ userInfo, offices }) {
         size: item.document.file_size,
         date: item.document.sent_at,
         message: item.document.message || '',
-        fileUrl: item.document.file,
+        fileUrl: item.document.file_url,
         sharedBy: item.document.sender.office?.name || 'Unknown',
         isNew: !item.is_read
       }));
