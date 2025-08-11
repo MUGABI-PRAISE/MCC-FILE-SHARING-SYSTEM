@@ -117,6 +117,7 @@ export default function Dashboard({ userInfo, offices }) {
       }));
 
       setSentFiles(transformed);
+
     } catch (err) {
       setError(err.message || 'Failed to fetch sent files');
       console.error('Error fetching sent files:', err);
@@ -219,7 +220,7 @@ export default function Dashboard({ userInfo, offices }) {
     console.log(`after updating : ${unreadCount}`);
   };
   
-  
+  // recent files are the first four of the sentfiles
   const recentFiles = receivedFiles
   .slice()
   .sort((a, b) => new Date(b.date) - new Date(a.date))
