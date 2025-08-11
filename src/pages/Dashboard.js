@@ -113,10 +113,11 @@ export default function Dashboard({ userInfo, offices }) {
         size: file.file_size,
         date: file.sent_at,
         message: file.message || '',
-        fileUrl: file.file
+        fileUrl: file.file_url
       }));
 
       setSentFiles(transformed);
+
     } catch (err) {
       setError(err.message || 'Failed to fetch sent files');
       console.error('Error fetching sent files:', err);
@@ -149,7 +150,7 @@ export default function Dashboard({ userInfo, offices }) {
         size: item.document.file_size,
         date: item.document.sent_at,
         message: item.document.message || '',
-        fileUrl: item.document.file,
+        fileUrl: item.document.file_url,
         sharedBy: item.document.sender.office?.name || 'Unknown',
         isNew: !item.is_read
       }));
@@ -219,7 +220,7 @@ export default function Dashboard({ userInfo, offices }) {
     console.log(`after updating : ${unreadCount}`);
   };
   
-  
+  // recent files are the first four of the sentfiles
   const recentFiles = receivedFiles
   .slice()
   .sort((a, b) => new Date(b.date) - new Date(a.date))
