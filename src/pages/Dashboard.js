@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import '../styles/Dashboard.css';
 import Sidebar from '../components/Sidebar';
 import UserProfile from '../components/UserProfile';
@@ -15,6 +15,7 @@ import { authFetch } from '../services/FetchAuth';
 import { useNavigate } from 'react-router-dom';
 import AuthWatcher from '../services/AuthWatcher';
 import useNotifications from '../hooks/useNotifications';
+
 // ---------- Utilities to keep arrays consistent and avoid duplicates ----------
 
 // Upsert by id for "Sent" items (id === document id)
@@ -88,11 +89,55 @@ export default function Dashboard({ userInfo, offices }) {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Ref to track previous received files count for sound notification
+  const prevReceivedCountRef = useRef(0);
+  const notificationSoundRef = useRef(null);
+
   // ===== Unread count is derived directly from receivedFiles (no separate state) =====
   const unreadCount = useMemo(
     () => receivedFiles.filter((f) => f.isNew).length,
     [receivedFiles]
   );
+
+  // Initialize notification sound
+  useEffect(() => {
+    notificationSoundRef.current = new Audio('/sound.mp3');
+    
+    // Clean up audio element on unmount
+    return () => {
+      if (notificationSoundRef.current) {
+        notificationSoundRef.current.pause();
+        notificationSoundRef.current = null;
+      }
+    };
+  }, []);
+
+  // Play sound when new notifications arrive
+  useEffect(() => {
+    // Only play sound if:
+    // 1. We have received files
+    // 2. The count has increased
+    // 3. The user is not currently viewing the received tab (optional)
+    if (receivedFiles.length > 0 && 
+        receivedFiles.length > prevReceivedCountRef.current &&
+        activeTab !== 'received') {
+      playNotificationSound();
+    }
+    
+    // Update the previous count reference
+    prevReceivedCountRef.current = receivedFiles.length;
+  }, [receivedFiles.length, activeTab]); // Only depend on length and activeTab
+
+  const playNotificationSound = () => {
+    if (notificationSoundRef.current) {
+      // Reset the audio to start from beginning
+      notificationSoundRef.current.currentTime = 0;
+      notificationSoundRef.current.play().catch(error => {
+        console.log('Audio play failed:', error);
+        // Some browsers require user interaction first
+      });
+    }
+  };
 
   // set the user's name (unchanged)
   const storedUser = JSON.parse(localStorage.getItem('userInfo'));
@@ -191,6 +236,9 @@ export default function Dashboard({ userInfo, offices }) {
         break;
     }
   });
+
+  // Rest of the code remains the same...
+  // [Keep all your existing functions like fetchSentFiles, fetchReceivedFiles, etc.]
 
   ///////////////////////////////////////////////////////////////////////////////////////
   //                              API CALLS                                           //
