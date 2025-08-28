@@ -18,7 +18,7 @@ export default function useNotifications(token, onEvent) {
     let reconnectTimer;
 
     const connect = () => {
-      const wsUrl = `ws://filesharingsystem-72ul.onrender.com/ws/notifications/?token=${token}`;
+      const wsUrl = `wss://filesharingsystem-72ul.onrender.com/ws/notifications/?token=${token}`;
       socket = new WebSocket(wsUrl);
       wsRef.current = socket;
 
