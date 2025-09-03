@@ -8,6 +8,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Toast from './components/Toast';
+import Settings from './pages/Settings';
 
 /**
  * AppRoutes handles routing logic and ensures protected routes use isAuthenticated
@@ -52,6 +53,17 @@ function AppRoutes({ offices, userInfo, setUserInfo, toast, setToast }) {
         element={
           isAuthenticated ? (
             <Profile user={userInfo} isAuthenticated={isAuthenticated} />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/dashboard/settings"
+        element={
+          isAuthenticated ? (
+            <Settings />
           ) : (
             <Navigate to="/login" replace />
           )

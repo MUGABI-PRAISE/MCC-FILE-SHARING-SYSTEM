@@ -15,6 +15,7 @@ import { authFetch } from '../services/FetchAuth';
 import { useNavigate } from 'react-router-dom';
 import AuthWatcher from '../services/AuthWatcher';
 import useNotifications from '../hooks/useNotifications';
+import ChatButton from '../components/ChatButton';
 
 // ---------- Utilities to keep arrays consistent and avoid duplicates ----------
 
@@ -440,6 +441,7 @@ export default function Dashboard({ userInfo, offices }) {
           )}
         </div>
       </div>
+      <ChatButton offices={offices} />
     </>
   );
 }
