@@ -485,7 +485,7 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     <Modal onClose={() => {
       if (activeChat) unsubscribe(activeChat.id);
       onClose();
-    }}>
+     }}>
       <div className="chat-modal">
         {leftPane}
         {rightPane}
