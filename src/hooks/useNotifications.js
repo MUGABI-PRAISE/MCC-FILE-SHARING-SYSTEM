@@ -8,62 +8,55 @@ import { useEffect, useRef } from "react";
  * @param {string} token - JWT access token (required).
  * @param {(event: any) => void} onEvent - Handler for parsed messages (required).
  */
+// import { useRef } from "react";
+
 export default function useNotifications(token, onEvent) {
   const wsRef = useRef(null);
+  const reconnectTimerRef = useRef(null);
 
   useEffect(() => {
-    if (!token || typeof onEvent !== "function") return;
+    if (!token || wsRef.current) return; // ⛔ prevent multiple sockets
 
-    let socket;
-    let reconnectTimer;
+    const wsUrl = `${process.env.REACT_APP_WS_BASE_URL}/ws/notifications/?token=${token}`;
+    const socket = new WebSocket(wsUrl);
+    wsRef.current = socket;
 
-    const connect = () => {
-      const wsUrl = `${process.env.REACT_APP_WS_BASE_URL}/ws/notifications/?token=${token}`;
-
-      socket = new WebSocket(wsUrl);
-      wsRef.current = socket;
-
-      socket.onopen = () => {
-        // Connected ✅
-        console.log("WebSocket connected");
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          // Some server messages look like: { type: "file.shared", payload: {...} }
-          // Others (like your chat echo) may not have payload wrapper.
-          if (data && data.type) {
-            const normalized = data.payload
-              ? { type: data.type, payload: data.payload }
-              : data;
-            onEvent(normalized);
-          }
-        } catch (err) {
-          console.error("WS: failed to parse message", err);
-        }
-      };
-
-      socket.onclose = () => {
-        // Optionally auto-reconnect after a short delay
-        // console.warn("WS: closed. Reconnecting in 3s...");
-        // reconnectTimer = setTimeout(connect, 3000);
-      };
-
-      socket.onerror = (err) => {
-        console.error("WS: error", err);
-        // Close to trigger onclose (and optional reconnect)
-        socket.close();
-      };
+    socket.onopen = () => {
+      console.log("✅ WebSocket connected");
     };
 
-    connect();
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.type) {
+          const normalized = data.payload
+            ? { type: data.type, payload: data.payload }
+            : data;
+          onEvent(normalized);
+        }
+      } catch (err) {
+        console.error("WS: failed to parse message", err);
+      }
+    };
+
+    socket.onclose = () => {
+      console.warn("❌ WS closed. Reconnecting in 3s...");
+      wsRef.current = null;
+      reconnectTimerRef.current = setTimeout(() => {
+        wsRef.current = null;
+      }, 3000);
+    };
+
+    socket.onerror = (err) => {
+      console.error("⚠️ WS error", err);
+      socket.close();
+    };
 
     return () => {
-      if (reconnectTimer) clearTimeout(reconnectTimer);
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close();
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
       }
     };
   }, [token, onEvent]);
