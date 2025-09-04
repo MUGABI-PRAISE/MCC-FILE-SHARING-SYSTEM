@@ -578,3 +578,36 @@
 .chat-composer { position:relative; }
 
 /* end of appended css */
+
+
+/* EMOJI PICKER */
+/* EmojiPicker.css */
+
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;          /* wrap emojis into multiple lines */
+  gap: 6px;                 /* spacing between emojis */
+  padding: 10px;
+  max-height: 300px;        /* limit height of picker */
+  overflow-y: auto;         /* vertical scroll */
+  background: #fff;         /* modal background */
+  border: 1px solid #ccc;   /* optional border */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* optional shadow */
+}
+
+.emoji-btn {
+  font-size: 20px;
+  padding: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.emoji-btn:hover {
+  background: #f0f0f0;
+}
+
+/*  */

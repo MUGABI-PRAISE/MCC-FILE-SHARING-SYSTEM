@@ -71,7 +71,18 @@ function OfficePicker({ offices, selected, onToggle }) {
 
 function EmojiPicker({ onSelect }) {
   // a tiny curated set of emoji; replace or expand as you like
-  const emojis = ['😀','😁','😂','🤣','😊','😍','🤔','👍','🙏','🔥','🎉','❤️','🤝','🙌','😅','😎','🫡','👏','🤷‍♂️'];
+  const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', 
+                  '😎', '🤩', '🥳','🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', 
+                  '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄','🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', 
+                  '🥦', '🥬', '🥒', '🌶', '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧇', '🧈', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', 
+                  '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', 
+                  '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯','🏠', '🏡', '🏢', '🏣', 
+                  '🏤', '🏥', '🏦', '🏨', '🏩', '🏪', '🏫', '🏬', '🏭', '🏯', '🏰', '💒', '🗼', '🗽', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋', '⛲', '⛺', '🌁', '🌃', '🏙️', '🌄', '🌅', '🌆', 
+                  '🌇', '🌉', '🎠', '🎡', '🎢', '💈', '🎪', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐', '🚑', '🚒', '🚓', '🚔', '🚕', 
+                  '🚖', '🚗', '🚘', '🚙', '🚚', '🚛', '🚜', '🏎️', '🏍️', '🛵', '🚲', '🛴', '🛹', '🚏', '🛣️', '🛤️', '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '⛵', '🛶', '🚤', '🛳️', '⛴️', 
+                  '🛥️', '🚢', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🎆', '🎇', '🎑', '💎','⚽', '⚾', '🥎', '🏀', '🏐', '🏈', '🏉', '🎾', '🥏', 
+                  '🎳', '🏏', '🏑', '🏒', '🥍', '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '⛸️', '🎣', '🤿', '🎽', '🎿', '🛷', '🥌', '🎯', '🪀', '🪁', '🎱', '🔮', '🎮', '🕹️', '🎰', '🎲', '🧩', 
+                  '♠️', '♥️', '♦️', '♣️', '🃏', '🀄', '🎴', '🎭', '🖼️', '🎨', '🧵', '🧶']
   return (
     <div className="emoji-picker">
       {emojis.map(e => (
@@ -265,19 +276,26 @@ export default function ChatModal({ onClose, offices: officesProp }) {
         const t = evt.type;
         if (t === 'chat.message.new') {
           const chatId = evt.chat_id || evt.chat;
+          const isMine = evt.sender?.id === userInfo?.id; // or evt.sender?.office_id === myOfficeId
+
           if (activeChat && chatId === activeChat.id) {
-            // insert but only autoscroll if user is at bottom
             setMessages((prev) => upsertMessage(prev, evt));
-            if (isAtBottom) {
+
+            if (isMine) {
+              // If I'm the sender → always scroll
               scrollToBottomSmooth();
             } else {
-              // increment unseen counter for this chat
-              setUnseenCounts(prev => ({ ...prev, [chatId]: (prev[chatId] || 0) + 1 }));
+              // Receiver logic
+              if (isAtBottom) {
+                scrollToBottomSmooth();
+              } else {
+                setUnseenCounts(prev => ({ ...prev, [chatId]: (prev[chatId] || 0) + 1 }));
+              }
             }
           }
-          // refresh chat preview for lists
+
           refreshChatList();
-        } else if (t === 'chat.message.edited') {
+        }else if (t === 'chat.message.edited') {
           if (activeChat && evt.chat_id === activeChat.id) {
             setMessages((prev) => prev.map(m => m.id === evt.message.id ? {...m, ...evt.message} : m));
           }
