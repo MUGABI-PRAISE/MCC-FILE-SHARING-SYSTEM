@@ -489,7 +489,7 @@
 
 /* avatar base */
 .chat-avatar { border-radius: 8px; object-fit: cover; display: inline-block; }
-.avatar-generated { display:flex; align-items:center; justify-content:center; color: #fff; font-weight:700; border-radius:8px; }
+.avatar-generated { display:flex; align-items:center; justify-content:center;   background: #3a2020; /* fallback if JS fails */color: #fff; font-weight:700; border-radius:8px; }
 .avatar-initials { font-size: 0.95rem; }
 .avatar-generated.small { width:36px; height:36px; border-radius:6px; }
 .avatar-initials.small { font-size:0.7rem; }
@@ -514,7 +514,7 @@
 
 /* group sender column (left of message bubble) */
 .group-sender-col { width:56px; display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
-.group-sender-avatar img { width:40px; height:40px; border-radius:6px; object-fit:cover; }
+.group-sender-avatar img { width:40px; height:40px; border-radius:6px; object-fit:cover; background: #0981dd; }
 .group-sender-avatar .avatar-generated.small { width:40px; height:40px; border-radius:6px; }
 .group-sender-name { font-weight:600; font-size:0.85rem; margin-bottom:6px; color:#2c3e50; }
 
@@ -528,5 +528,53 @@
 
 /* small tweak to cli-preview so last-message sender appears naturally */
 .cli-preview .cli-sender::after { content: ''; }
+
+/* end of appended css */
+
+
+/*
+  --- Additional CSS to add to your existing Chat.css ---
+  Append or merge the following styles into ../styles/Chat.css
+*/
+
+/* ===== New styles: header menu, mini menus, group modal, badge, emoji picker ===== */
+
+.header-actions { display:flex; align-items:center; gap:8px; }
+.mini-menu-btn { background:transparent; border:none; font-size:20px; cursor:pointer; }
+
+/* group settings modal content */
+.group-settings { max-width:520px; padding:18px; border-radius:10px; background:#fff; box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+.group-settings h3 { margin-top:0; }
+.group-section { margin:12px 0; }
+.members-list { max-height:180px; overflow:auto; border:1px solid #eef2f6; border-radius:8px; padding:8px; }
+.member-row { display:flex; gap:8px; align-items:center; padding:6px; }
+.member-row img { width:36px; height:36px; border-radius:6px; object-fit:cover; }
+.badge { background:#f1f3f5; border-radius:6px; padding:4px 8px; font-size:12px; }
+.danger { margin-top:8px; display:flex; gap:8px; }
+.danger .danger { background:#ff4d4f; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+
+/* mini menu on chat-list */
+.cli-actions { display:flex; align-items:flex-start; gap:6px; }
+.mini-menu { position:absolute; right:12px; top:48px; background:#fff; border:1px solid #e9ecef; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,0.06); z-index:40; }
+.mini-item { display:block; padding:8px 12px; width:160px; text-align:left; background:transparent; border:none; cursor:pointer; }
+.mini-item:hover { background:#f8f9fa; }
+.mini-menu-btn { padding:6px 8px; border-radius:6px; }
+
+/* new message badge */
+.new-msg-badge { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); background: #2c3e50; color:#fff; padding:8px 12px; border-radius:18px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.12); z-index:40; }
+
+/* emoji picker */
+.emoji-picker { position: absolute; bottom: 74px; left: 16px; background:#fff; border:1px solid #e9ecef; border-radius:8px; padding:8px; display:flex; gap:6px; flex-wrap:wrap; box-shadow:0 10px 30px rgba(0,0,0,0.08); z-index:60; }
+.emoji-btn { background:transparent; border:none; font-size:20px; padding:6px; cursor:pointer; }
+.emoji-toggle { border:none; background:transparent; font-size:20px; cursor:pointer; }
+
+/* adjust message bubble shadow to be more visible (example) */
+/* .msg-bubble { box-shadow: 0 4px 10px rgba(0,0,0,0.08); } */
+
+/* adjust group sender column spacing */
+.group-sender-col { width:56px; display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
+
+/* minor responsive behavior for emoji+composer */
+.chat-composer { position:relative; }
 
 /* end of appended css */
