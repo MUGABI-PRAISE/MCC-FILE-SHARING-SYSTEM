@@ -1,16 +1,14 @@
+// Updated DashboardHeader.js (File Button)
 import '../styles/DashboardHeader.css';
+
 export default function DashboardHeader({ onSendFile }) {
-    return (
-      <div className="dashboard-header">
-        <h1>File Sharing Dashboard</h1>
-        <div className="upload-area">
-          <button class="send-file-button" onClick={onSendFile}>
-            <svg class="icon" viewBox="0 0 24 24">
-                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-            </svg>
-                Send File
-          </button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="file-fab-container">
+      <button className="file-fab" onClick={onSendFile} title="Send file" aria-label="Send file">
+        <svg className="file-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11 15H13V9H16L12 4L8 9H11V15M15 17H9V15H5V21H19V15H15V17Z"/>
+        </svg>
+      </button>
+    </div>
+  );
+}

@@ -1,12 +1,12 @@
-/* File button specific styles */
-.file-fab-container {
+/* Chat button specific styles */
+.chat-fab-container {
   position: fixed;
   right: 24px;
-  bottom: 96px; /* Positioned above the chat button */
+  bottom: 24px;
   z-index: 1000;
 }
 
-.file-fab {
+.chat-fab {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -21,33 +21,31 @@
   transition: background 0.2s ease;
 }
 
-.file-fab:hover {
+.chat-fab:hover {
   background: linear-gradient(135deg, #219653, #1e8449);
 }
 
-.file-fab:active {
+.chat-fab:active {
   background: #1e8449;
 }
 
-.file-icon {
-  width: 24px;
-  height: 24px;
+.chat-icon {
+  font-size: 24px;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .file-fab-container {
+  .chat-fab-container {
     right: 16px;
-    bottom: 80px;
+    bottom: 16px;
   }
   
-  .file-fab {
+  .chat-fab {
     width: 52px;
     height: 52px;
   }
   
-  .file-icon {
-    width: 22px;
-    height: 22px;
+  .chat-icon {
+    font-size: 22px;
   }
 }

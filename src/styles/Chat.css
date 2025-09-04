@@ -1,5 +1,5 @@
 /* Chat.css (updated) */
-:root {
+/* :root {
   --bubble-mine: #e8f4ff;
   --bubble-theirs: #f2f3f5;
   --tick-read: #3498db;
@@ -7,25 +7,9 @@
   --secondary-color: #3498db;
   --accent-color: #e74c3c;
   --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+} */
 
-.chat-fab {
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: none;
-  background: var(--secondary-color);
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  box-shadow: var(--box-shadow);
-  z-index: 1200;
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.chat-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+
 
 /* Modal layout */
 .chat-modal {

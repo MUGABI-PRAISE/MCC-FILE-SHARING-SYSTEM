@@ -1,15 +1,23 @@
-// src/components/ChatButton.js
+// Updated ChatButton.js
 import { useState } from 'react';
-import '../styles/Chat.css';
+import '../styles/ChatButton.css';
 import ChatModal from './ChatModal';
 
 export default function ChatButton({ offices }) {
   const [open, setOpen] = useState(false);
+  
   return (
     <>
-      <button className="chat-fab" onClick={() => setOpen(true)} title="Open chat">
-        💬
-      </button>
+      <div className="chat-fab-container">
+        <button 
+          className="chat-fab" 
+          onClick={() => setOpen(true)} 
+          title="Open chat"
+          aria-label="Open chat"
+        >
+          <span className="chat-icon">💬</span>
+        </button>
+      </div>
       {open && <ChatModal onClose={() => setOpen(false)} offices={offices} />}
     </>
   );
