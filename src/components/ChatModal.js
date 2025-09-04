@@ -1,105 +1,58 @@
 // src/components/ChatModal.js
 import { useEffect, useMemo, useRef, useState } from 'react';
-
 import Modal from './Modal';
 import Toast from './Toast';
 import '../styles/Chat.css';
-import { listChats, createDirectChat, createGroupChat, getChatMessages, uploadVoiceNote } from '../services/ChatApi';
+import { 
+  listChats, createDirectChat, createGroupChat, getChatMessages, 
+  uploadVoiceNote, addMembersToGroup, leaveGroup, deleteGroup, 
+  updateChatPreferences, sendMessage, editMessage, deleteMessageForAll,
+  deleteMessageForMe, markMessagesAsRead
+} from '../services/ChatApi';
 import useChatSocket from '../hooks/useChatSocket';
-import { authFetch } from '../services/FetchAuth';
-
-function OfficePicker({ offices, selected, onToggle }) {
-  return (
-    <div className="office-picker">
-      {offices.map((o) => (
-        <label key={o.id} className="office-pill">
-          <input
-            type="checkbox"
-            checked={selected.includes(o.id)}
-            onChange={() => onToggle(o.id)}
-          />
-          <span>{o.name}</span>
-        </label>
-      ))}
-    </div>
-  );
-}
-
-// Add a new component for chat avatars
-function ChatAvatar({ chat, size = 40 }) {
-  if (chat.is_group) {
-    // Group chat placeholder - multiple people icon
-    return (
-      <div 
-        className="chat-avatar group-avatar"
-        style={{ width: size, height: size }}
-      >
-        👥
-      </div>
-    );
-  } else {
-    // Sample userInfo object structure
-    const userInfo = {
-      id: 123,
-      first_name: "John",
-      last_name: "Doe",
-      email: "john.doe@example.com",
-      office: {
-        id: 456,
-        name: "New York Office"
-      }
-    };
-
-// How to store it in localStorage
-localStorage.setItem('userInfo', JSON.stringify(userInfo));
-    // Individual chat - first letter of the other participant's name
-    const otherParticipant = chat.participants?.find(p => p.id !== userInfo?.id);
-    const displayName = otherParticipant?.name || 'U';
-    const initial = displayName.charAt(0).toUpperCase();
-    
-    return (
-      <div 
-        className="chat-avatar individual-avatar"
-        style={{ width: size, height: size }}
-      >
-        {initial}
-      </div>
-    );
-  }
-}
+import ChatHeader from '../chat/ChatHeader';
+import ChatList from '../chat/ChatList';
+import MessageList from '../chat/MessageList';
+import MessageComposer from '../chat/MessageComposer';
+import GroupSettingsModal from '../chat/GroupSettingsModal';
+import ChatOptionsModal from '../chat/ChatOptionsModal';
+import EmojiPicker from '../chat/EmojiPicker';
 
 export default function ChatModal({ onClose, offices: officesProp }) {
   const token = localStorage.getItem('token');
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const myOfficeId = userInfo?.office?.id;
+  const userId = userInfo?.id;
 
   const [toast, setToast] = useState(null);
-  const showToast = (message, type='success') => setToast({ message, type });
+  const showToast = (message, type = 'success') => setToast({ message, type });
 
   const [chats, setChats] = useState([]);
+  const [archivedChats, setArchivedChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loadingChats, setLoadingChats] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [offices, setOffices] = useState(officesProp || []);
-  const [view, setView] = useState('chats'); // chats | newDirect | newGroup
+  const [view, setView] = useState('chats'); // chats | newDirect | newGroup | archived
   const [groupName, setGroupName] = useState('');
   const [selectedOffices, setSelectedOffices] = useState([]);
   
-  // NEW STATE: Filters and search
-  const [filter, setFilter] = useState('all'); // all, individual, groups
+  // State for new features
+  const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
+  const [showChatOptions, setShowChatOptions] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // message composer
   const [input, setInput] = useState('');
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
   const bottomRef = useRef(null);
-  const searchRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const { subscribe, unsubscribe, sendMessage, editMessage, deleteMessageForAll, deleteMessageForMe, readUpTo } =
     useChatSocket(token, {
@@ -109,9 +62,15 @@ export default function ChatModal({ onClose, offices: officesProp }) {
           const { chat_id, id } = evt;
           if (activeChat && chat_id === activeChat.id) {
             setMessages((prev) => upsertMessage(prev, evt));
-            scrollToBottomSmooth();
+            
+            // If user is at the bottom, scroll to new message
+            if (isNearBottom()) {
+              setTimeout(scrollToBottomSmooth, 100);
+            } else {
+              // Otherwise, increment unread count
+              setUnreadCount(prev => prev + 1);
+            }
           }
-          // refresh chat preview
           refreshChatList();
         } else if (t === 'chat.message.edited') {
           if (activeChat && evt.chat_id === activeChat.id) {
@@ -127,7 +86,6 @@ export default function ChatModal({ onClose, offices: officesProp }) {
           }
         } else if (t === 'chat.message.read') {
           if (activeChat && evt.chat_id === activeChat.id) {
-            // no need to fetch; we can mark read for office
             setMessages((prev) => prev.map(m => {
               if (m.sender?.office_id !== myOfficeId && m.id <= evt.up_to_message_id) {
                 const setIds = new Set(m.read_office_ids || []);
@@ -150,65 +108,59 @@ export default function ChatModal({ onClose, offices: officesProp }) {
           }
         } else if (t === 'chat.ack') {
           if (evt.ok && evt.message && activeChat && evt.message.chat === activeChat.id) {
-            // replace temp message with real one
             setMessages((prev) => replaceTempWithReal(prev, evt.temp_id, evt.message));
-            scrollToBottomSmooth();
+            if (isNearBottom()) {
+              setTimeout(scrollToBottomSmooth, 100);
+            }
           } else if (!evt.ok) {
             showToast(evt.error || 'Message send failed', 'error');
-            // remove temp
             setMessages((prev) => prev.filter(m => m.temp_id !== evt.temp_id));
           }
         } else if (t === 'error') {
           showToast(evt.error || 'Chat error', 'error');
+        } else if (t === 'chat.updated') {
+          // Handle chat updates like member added, admin changed, etc.
+          refreshChatList();
+          if (activeChat && activeChat.id === evt.chat_id) {
+            setActiveChat(prev => ({...prev, ...evt.chat}));
+          }
+        } else if (t === 'chat.deleted') {
+          if (activeChat && activeChat.id === evt.chat_id) {
+            setActiveChat(null);
+            setMessages([]);
+          }
+          refreshChatList();
         }
       }
     });
 
-  // NEW: Filter chats based on selected filter
-  const filteredChats = useMemo(() => {
-    let result = chats;
-    
-    // Apply type filter
-    if (filter === 'individual') {
-      result = result.filter(chat => !chat.is_group);
-    } else if (filter === 'groups') {
-      result = result.filter(chat => chat.is_group);
-    }
-    
-    // Apply search filter if there's a query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(chat => {
-        if (chat.is_group) {
-          // For groups, search in name and participants
-          return chat.name?.toLowerCase().includes(query) || 
-                 chat.participants?.some(p => p.name.toLowerCase().includes(query));
-        } else {
-          // For individual chats, search in participant names
-          return chat.participants?.some(p => 
-            p.id !== userInfo?.id && p.name.toLowerCase().includes(query)
-          );
-        }
-      });
-    }
-    
-    return result;
-  }, [chats, filter, searchQuery, userInfo?.id]);
+  // Check if user is near the bottom of the messages
+  const isNearBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100;
+  };
 
-  // NEW: Handle search input changes
-  useEffect(() => {
-    if (searchQuery) {
-      setShowSearchResults(true);
-    } else {
-      setShowSearchResults(false);
+  const scrollToBottomSmooth = () => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      setUnreadCount(0); // Reset unread count when scrolling to bottom
     }
-  }, [searchQuery]);
+  };
+
+  const scrollToBottom = () => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+      setUnreadCount(0);
+    }
+  };
 
   function upsertMessage(prev, evtPayload) {
     const exists = prev.some(m => m.id === evtPayload.id);
     if (exists) return prev.map(m => m.id === evtPayload.id ? {...m, ...evtPayload} : m);
     return [...prev, evtPayload];
   }
+
   function replaceTempWithReal(prev, tempId, real) {
     const idx = prev.findIndex(m => m.temp_id === tempId);
     if (idx === -1) return [...prev, real];
@@ -217,53 +169,40 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     return copy;
   }
 
-  const scrollToBottomSmooth = () => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  };
-
-  const computeStatus = (msg) => {
-    if (msg.temp_id) return 'sending';
-    const recipients = (activeChat?.participants || []).map(p => p.id).filter(id => id !== msg.sender?.office_id);
-    const delivered = (msg.delivered_office_ids || []);
-    const read = (msg.read_office_ids || []);
-    const allDelivered = recipients.length > 0 && recipients.every(r => delivered.includes(r));
-    const allRead = recipients.length > 0 && recipients.every(r => read.includes(r));
-    if (allRead) return 'read';
-    if (allDelivered) return 'delivered';
-    return 'sent';
-  };
-
-  const canEditMsg = (msg) => msg?.can_edit && msg.sender?.id === userInfo?.id && !msg.is_deleted;
-
-  const isMine = (msg) => msg.sender?.id === userInfo?.id;
-
-  const longTextCollapsed = (text) => text && text.length > 300 ? (text.slice(0, 300) + '...') : text;
-
   useEffect(() => {
-    (async () => {
-      try {
-        setLoadingChats(true);
-        if (!officesProp || officesProp.length === 0) {
-          // fetch offices only if not passed
-          const res = await fetch(`${process.env.REACT_APP_API_URL}/filesharing/offices/`);
-          const data = await res.json();
-          setOffices(data);
-        }
-        const chatList = await listChats();
-        setChats(chatList);
-      } catch (e) {
-        showToast(e.message || 'Failed to load chats', 'error');
-      } finally {
-        setLoadingChats(false);
-      }
-    })();
+    loadChats();
     // eslint-disable-next-line
   }, []);
 
+  const loadChats = async () => {
+    try {
+      setLoadingChats(true);
+      if (!officesProp || officesProp.length === 0) {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/filesharing/offices/`);
+        const data = await res.json();
+        setOffices(data);
+      }
+      const [chatList, archivedList] = await Promise.all([
+        listChats(false), // active chats
+        listChats(true)   // archived chats
+      ]);
+      setChats(chatList);
+      setArchivedChats(archivedList);
+    } catch (e) {
+      showToast(e.message || 'Failed to load chats', 'error');
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
   const refreshChatList = async () => {
     try {
-      const chatList = await listChats();
+      const [chatList, archivedList] = await Promise.all([
+        listChats(false),
+        listChats(true)
+      ]);
       setChats(chatList);
+      setArchivedChats(archivedList);
     } catch (e) {
       // ignore
     }
@@ -271,18 +210,22 @@ export default function ChatModal({ onClose, offices: officesProp }) {
 
   const openChat = async (chat) => {
     try {
+      if (activeChat) {
+        unsubscribe(activeChat.id);
+      }
+      
       setActiveChat(chat);
       setView('chats');
       setLoadingMessages(true);
       const msgs = await getChatMessages(chat.id);
       setMessages(msgs);
       subscribe(chat.id);
-      // after load, mark read up to latest non-mine
+      
       const last = msgs[msgs.length-1];
       if (last) {
         setTimeout(() => readUpTo({ chatId: chat.id, upToMessageId: last.id }), 100);
       }
-      setTimeout(scrollToBottomSmooth, 100);
+      setTimeout(scrollToBottom, 100);
     } catch (e) {
       showToast(e.message || 'Failed to open chat', 'error');
     } finally {
@@ -304,7 +247,9 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     try {
       if (!groupName.trim()) return showToast('Group name required', 'error');
       if (selectedOffices.length < 2) return showToast('Select at least 2 offices', 'error');
-      const chat = await createGroupChat(groupName, selectedOffices);
+      
+      // The creator becomes admin by default
+      const chat = await createGroupChat(groupName, selectedOffices, userId);
       setGroupName('');
       setSelectedOffices([]);
       await openChat(chat);
@@ -314,337 +259,191 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     }
   };
 
+  const handleAddMembers = async (newMembers) => {
+    try {
+      if (!activeChat || !activeChat.is_group) return;
+      
+      await addMembersToGroup(activeChat.id, newMembers);
+      showToast('Members added successfully', 'success');
+      setShowGroupSettings(false);
+    } catch (e) {
+      showToast(e.message || 'Failed to add members', 'error');
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    try {
+      if (!activeChat || !activeChat.is_group) return;
+      
+      await leaveGroup(activeChat.id, userId);
+      showToast('You left the group', 'success');
+      setActiveChat(null);
+      setMessages([]);
+      setShowGroupSettings(false);
+      refreshChatList();
+    } catch (e) {
+      showToast(e.message || 'Failed to leave group', 'error');
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    try {
+      if (!activeChat || !activeChat.is_group) return;
+      
+      await deleteGroup(activeChat.id);
+      showToast('Group deleted', 'success');
+      setActiveChat(null);
+      setMessages([]);
+      setShowGroupSettings(false);
+      refreshChatList();
+    } catch (e) {
+      showToast(e.message || 'Failed to delete group', 'error');
+    }
+  };
+
+  ///////// these functions
+  const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mr = new MediaRecorder(stream);
+    mediaRecorderRef.current = mr;
+    chunksRef.current = [];
+    mr.ondataavailable = (e) => chunksRef.current.push(e.data);
+    mr.onstop = async () => {
+      const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+      try {
+        const { url } = await uploadVoiceNote(blob);
+        handleSend('', url);
+      } catch (e) {
+        showToast(e.message || 'Voice upload failed', 'error');
+      }
+    };
+    mr.start();
+    setRecording(true);
+  } catch (e) {
+    showToast('Mic permission denied or unavailable', 'error');
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorderRef.current && recording) {
+    mediaRecorderRef.current.stop();
+    mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+    setRecording(false);
+  }
+};
+
+// const handleEmojiSelect = (emoji) => {
+//   setInput(prev => prev + emoji);
+//   setShowEmojiPicker(false);
+// };
+
+  const handleChatAction = async (action, chatId) => {
+    try {
+      switch(action) {
+        case 'archive':
+          await updateChatPreferences(chatId, { archived: true });
+          showToast('Chat archived', 'success');
+          break;
+        case 'unarchive':
+          await updateChatPreferences(chatId, { archived: false });
+          showToast('Chat unarchived', 'success');
+          break;
+        case 'pin':
+          await updateChatPreferences(chatId, { pinned: true });
+          showToast('Chat pinned', 'success');
+          break;
+        case 'unpin':
+          await updateChatPreferences(chatId, { pinned: false });
+          showToast('Chat unpinned', 'success');
+          break;
+        case 'delete':
+          await updateChatPreferences(chatId, { deleted: true });
+          showToast('Chat deleted', 'success');
+          break;
+        default:
+          break;
+      }
+      
+      refreshChatList();
+      setShowChatOptions(null);
+    } catch (e) {
+      showToast(e.message || 'Action failed', 'error');
+    }
+  };
+
   const toggleOffice = (id) => {
     setSelectedOffices(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  // sending text
-  const handleSend = async () => {
-    if (!activeChat) return;
-    const content = input.trim();
-    if (!content) return;
+  const handleSend = async (content, voiceNote = null) => {
+    if (!activeChat || (!content && !voiceNote)) return;
+    
     const tempId = `tmp_${Date.now()}`;
-    // optimistic insert
     const tempMsg = {
       id: null,
       temp_id: tempId,
       chat: activeChat.id,
-      sender: { id: userInfo.id, first_name: userInfo.first_name, last_name: userInfo.last_name, office_id: myOfficeId },
+      sender: { 
+        id: userInfo.id, 
+        first_name: userInfo.first_name, 
+        last_name: userInfo.last_name, 
+        office_id: myOfficeId 
+      },
       content,
-      voice_note: null,
+      voice_note: voiceNote,
       is_deleted: false,
       created_at: new Date().toISOString(),
       delivered_office_ids: [],
       read_office_ids: [],
     };
+    
     setMessages(prev => [...prev, tempMsg]);
-    setInput('');
-    sendMessage({ chatId: activeChat.id, content, voiceNote: null, tempId });
-    scrollToBottomSmooth();
+    sendMessage({ chatId: activeChat.id, content, voiceNote, tempId });
+    
+    if (isNearBottom()) {
+      setTimeout(scrollToBottomSmooth, 100);
+    }
   };
 
-  // voice recording
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      mediaRecorderRef.current = mr;
-      chunksRef.current = [];
-      mr.ondataavailable = (e) => chunksRef.current.push(e.data);
-      mr.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        try {
-          const { url } = await uploadVoiceNote(blob);
-          const tempId = `tmp_${Date.now()}`;
-          const tempMsg = {
-            id: null,
-            temp_id: tempId,
-            chat: activeChat.id,
-            sender: { id: userInfo.id, first_name: userInfo.first_name, last_name: userInfo.last_name, office_id: myOfficeId },
-            content: '',
-            voice_note: url,
-            is_deleted: false,
-            created_at: new Date().toISOString(),
-            delivered_office_ids: [],
-            read_office_ids: [],
-          };
-          setMessages(prev => [...prev, tempMsg]);
-          sendMessage({ chatId: activeChat.id, content: '', voiceNote: url, tempId });
-          scrollToBottomSmooth();
-          showToast('Voice note sent', 'success');
-        } catch (e) {
-          showToast(e.message || 'Voice upload failed', 'error');
+  const handleEmojiSelect = (emoji) => {
+    setInput(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  // Filter chats based on selected filter and search query
+  const filteredChats = useMemo(() => {
+    let result = view === 'archived' ? archivedChats : chats;
+    
+    // Apply type filter
+    if (filter === 'individual') {
+      result = result.filter(chat => !chat.is_group);
+    } else if (filter === 'groups') {
+      result = result.filter(chat => chat.is_group);
+    }
+    
+    // Apply search filter if there's a query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(chat => {
+        if (chat.is_group) {
+          return chat.name?.toLowerCase().includes(query) || 
+                 chat.participants?.some(p => p.name.toLowerCase().includes(query));
+        } else {
+          return chat.participants?.some(p => 
+            p.id !== userId && p.name.toLowerCase().includes(query)
+          );
         }
-      };
-      mr.start();
-      setRecording(true);
-    } catch (e) {
-      showToast('Mic permission denied or unavailable', 'error');
+      });
     }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && recording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
-      setRecording(false);
-    }
-  };
-
-  const handleEdit = async (msg) => {
-    const newContent = prompt('Edit message:', msg.content);
-    if (newContent === null) return;
-    editMessage({ messageId: msg.id, newContent });
-  };
-
-  const handleDeleteForAll = (msg) => {
-    if (!window.confirm('Delete for everyone?')) return;
-    deleteMessageForAll({ messageId: msg.id });
-  };
-
-  const handleDeleteForMe = (msg) => {
-    if (!window.confirm('Delete for me (local only)?')) return;
-    deleteMessageForMe({ messageId: msg.id });
-    // also remove locally ASAP
-    setMessages(prev => prev.filter(m => m.id !== msg.id));
-  };
-
-  // NEW: Handle search input
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // NEW: Clear search
-  const clearSearch = () => {
-    setSearchQuery('');
-    setShowSearchResults(false);
-  };
-
-  const leftPane = (
-    <div className="chat-left">
-      <div className="chat-left-header">
-        <h3>Chats</h3>
-        <div className="chat-left-actions">
-          <button className={`chip ${view==='newDirect'?'active':''}`} onClick={() => setView('newDirect')}>New Chat</button>
-          <button className={`chip ${view==='newGroup'?'active':''}`} onClick={() => setView('newGroup')}>New Group</button>
-        </div>
-      </div>
-
-      {/* NEW: Search bar */}
-      <div className="chat-search-container">
-        <input
-          ref={searchRef}
-          type="text"
-          className="chat-search-input"
-          placeholder="Search chats..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-        {searchQuery && (
-          <button className="chat-search-clear" onClick={clearSearch}>
-            ×
-          </button>
-        )}
-      </div>
-
-      {/* NEW: Filter buttons */}
-      <div className="chat-filters">
-        <button 
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All
-        </button>
-        <button 
-          className={`filter-btn ${filter === 'individual' ? 'active' : ''}`}
-          onClick={() => setFilter('individual')}
-        >
-          Individual
-        </button>
-        <button 
-          className={`filter-btn ${filter === 'groups' ? 'active' : ''}`}
-          onClick={() => setFilter('groups')}
-        >
-          Groups
-        </button>
-      </div>
-
-      {view === 'chats' && (
-        <div className="chat-list">
-          {loadingChats && <div className="loading">Loading chats...</div>}
-          {filteredChats.length === 0 ? (
-            <div className="no-chats-message">
-              {searchQuery ? 'No matching chats found' : `No ${filter === 'all' ? '' : filter} chats`}
-            </div>
-          ) : (
-            filteredChats.map((c) => (
-              <div
-                key={c.id}
-                className={`chat-list-item ${activeChat && activeChat.id === c.id ? 'active' : ''}`}
-                onClick={() => openChat(c)}
-              >
-                {/* NEW: Chat avatar */}
-                <ChatAvatar chat={c} size={48} />
-                
-                <div className="cli-content">
-                  <div className="cli-title">
-                    <span className="cli-name">
-                      {c.is_group 
-                        ? (c.name || 'Group') 
-                        : (c.participants?.find(p => p.id !== userInfo?.id)?.name || 'Unknown')
-                      }
-                    </span>
-                  </div>
-                  <div className="cli-preview">
-                    {c.last_message ? (
-                      <>
-                        <span className="cli-sender">
-                          {c.last_message.sender.first_name}:
-                        </span>
-                        <span className="cli-text">
-                          {c.last_message.is_deleted ? 'Message deleted' : (c.last_message.content || (c.last_message.voice_note ? '🎤 Voice note' : ''))}
-                        </span>
-                        <span className="cli-time">{c.last_message.ago}</span>
-                      </>
-                    ) : (
-                      <span className="cli-text empty">No messages yet</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {view === 'newDirect' && (
-        <div className="new-chat">
-          <h4>Start a direct chat</h4>
-          <div className="office-list">
-            {offices.filter(o => o.id !== myOfficeId).map((o) => (
-              <button key={o.id} className="office-item" onClick={() => startDirect(o.id)}>{o.name}</button>
-            ))}
-          </div>
-          <button className="secondary" onClick={() => setView('chats')}>Back</button>
-        </div>
-      )}
-
-      {view === 'newGroup' && (
-        <div className="new-group">
-          <h4>Create a group</h4>
-          <input className="input" placeholder="Group name" value={groupName} onChange={e => setGroupName(e.target.value)} />
-          <OfficePicker
-            offices={offices}
-            selected={selectedOffices}
-            onToggle={toggleOffice}
-          />
-          <div className="row">
-            <button className="primary" onClick={createGroup}>Create</button>
-            <button className="secondary" onClick={() => setView('chats')}>Cancel</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const rightPane = (
-    <div className="chat-right">
-      {activeChat ? (
-        <>
-          <div className="chat-right-header">
-            {/* NEW: Chat avatar in header */}
-            <ChatAvatar chat={activeChat} size={40} />
-            <div className="title">
-              {activeChat.is_group ? (activeChat.name || 'Group') : 'Direct chat'}
-              <div className="subtitle">
-                {activeChat.participants.map(p => p.name).join(', ')}
-              </div>
-            </div>
-          </div>
-
-          <div className="chat-messages">
-            {loadingMessages && <div className="loading">Loading messages...</div>}
-            {messages.map((m) => {
-              const mine = isMine(m);
-              const side = mine ? 'right' : 'left';
-              const status = mine ? computeStatus(m) : null;
-              const canEdit = canEditMsg(m);
-              const showReadMore = m.content && m.content.length > 300;
-              return (
-                <div key={m.id || m.temp_id} className={`msg-row ${side}`}>
-                  {/* NEW: Show sender name in group chats */}
-                  {activeChat.is_group && !mine && (
-                    <div className="msg-sender-name">
-                      {m.sender?.first_name} {m.sender?.last_name}
-                    </div>
-                  )}
-                  
-                  <div className={`msg-bubble ${mine ? 'mine' : 'theirs'}`}>
-                    {m.is_deleted ? (
-                      <div className="deleted-text">This message was deleted</div>
-                    ) : (
-                      <>
-                        {m.content && (
-                          <div className="msg-text">
-                            <ExpandableText text={m.content} />
-                          </div>
-                        )}
-                        {m.voice_note && (
-                          <div className="voice-note">
-                            <audio controls src={m.voice_note} />
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    <div className="msg-meta">
-                      <span className="time">{formatTime(m.created_at)}</span>
-                      {mine && (
-                        <span className={`ticks ${status}`}>
-                          {status === 'sending' && '⏳'}
-                          {status === 'sent' && '✓'}
-                          {status === 'delivered' && '✓✓'}
-                          {status === 'read' && '✓✓'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* actions */}
-                  {!m.is_deleted && (
-                    <div className={`msg-actions ${mine ? 'mine' : ''}`}>
-                      {mine && canEdit && <button className="icon-btn" title="Edit" onClick={() => handleEdit(m)}>✏️</button>}
-                      {mine && <button className="icon-btn" title="Delete for everyone" onClick={() => handleDeleteForAll(m)}>🗑️</button>}
-                      {!mine && activeChat.chat_type === 'direct' && (
-                        <button className="icon-btn" title="Delete for me" onClick={() => handleDeleteForMe(m)}>🙈</button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div ref={bottomRef} />
-          </div>
-
-          <div className="chat-composer">
-            <input
-              className="input"
-              placeholder="Type a message"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-            />
-            <button className={`mic-btn ${recording ? 'rec' : ''}`} onClick={recording ? stopRecording : startRecording}>
-              {recording ? '■' : '🎤'}
-            </button>
-            <button className="send-btn" onClick={handleSend}>Send</button>
-          </div>
-        </>
-      ) : (
-        <div className="empty-state">Select or create a chat to start messaging.</div>
-      )}
-    </div>
-  );
+    
+    // Sort pinned chats first
+    return result.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return new Date(b.last_message?.created_at || 0) - new Date(a.last_message?.created_at || 0);
+    });
+  }, [chats, archivedChats, view, filter, searchQuery, userId]);
 
   return (
     <Modal onClose={() => {
@@ -653,36 +452,129 @@ export default function ChatModal({ onClose, offices: officesProp }) {
      }}>
       <div className="chat-modal">
         <div className="chat-left-container">
-          {leftPane}
+          <ChatList
+            view={view}
+            setView={setView}
+            filter={filter}
+            setFilter={setFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            loadingChats={loadingChats}
+            filteredChats={filteredChats}
+            activeChat={activeChat}
+            openChat={openChat}
+            startDirect={startDirect}
+            offices={offices}
+            myOfficeId={myOfficeId}
+            showChatOptions={showChatOptions}
+            setShowChatOptions={setShowChatOptions}
+            handleChatAction={handleChatAction}
+            groupName={groupName}
+            setGroupName={setGroupName}
+            selectedOffices={selectedOffices}
+            toggleOffice={toggleOffice}
+            createGroup={createGroup}
+            userInfo={userInfo}
+          />
         </div>
+        
         <div className="chat-right-container">
-          {rightPane}
+          {activeChat ? (
+            <>
+              <ChatHeader
+                activeChat={activeChat}
+                userInfo={userInfo}
+                setShowGroupSettings={setShowGroupSettings}
+              />
+              
+              <MessageList
+                messages={messages}
+                loadingMessages={loadingMessages}
+                activeChat={activeChat}
+                userInfo={userInfo}
+                myOfficeId={myOfficeId}
+                messagesContainerRef={messagesContainerRef}
+                bottomRef={bottomRef}
+                editMessage={editMessage}
+                deleteMessageForAll={deleteMessageForAll}
+                deleteMessageForMe={deleteMessageForMe}
+                computeStatus={computeStatus}
+                isMine={isMine}
+                canEditMsg={canEditMsg}
+              />
+              
+              {unreadCount > 0 && (
+                <div className="unread-indicator" onClick={scrollToBottom}>
+                  {unreadCount} new message{unreadCount !== 1 ? 's' : ''}
+                </div>
+              )}
+              
+              <MessageComposer
+                input={input}
+                setInput={setInput}
+                recording={recording}
+                handleSend={handleSend}
+                startRecording={startRecording}
+                stopRecording={stopRecording}
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+              />
+            </>
+          ) : (
+            <div className="empty-state">Select or create a chat to start messaging.</div>
+          )}
         </div>
       </div>
+      
+      {showEmojiPicker && (
+        <EmojiPicker 
+          onSelect={handleEmojiSelect} 
+          onClose={() => setShowEmojiPicker(false)}
+        />
+      )}
+      
+      {showGroupSettings && activeChat && (
+        <GroupSettingsModal
+          chat={activeChat}
+          userInfo={userInfo}
+          offices={offices}
+          onAddMembers={handleAddMembers}
+          onLeaveGroup={handleLeaveGroup}
+          onDeleteGroup={handleDeleteGroup}
+          onClose={() => setShowGroupSettings(false)}
+        />
+      )}
+      
+      {showChatOptions && (
+        <ChatOptionsModal
+          chat={showChatOptions}
+          onAction={handleChatAction}
+          onClose={() => setShowChatOptions(null)}
+        />
+      )}
+      
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </Modal>
   );
 }
 
-function formatTime(iso) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return '';
-  }
+// Helper functions
+function computeStatus(msg, activeChat, myOfficeId) {
+  if (msg.temp_id) return 'sending';
+  const recipients = (activeChat?.participants || []).map(p => p.id).filter(id => id !== msg.sender?.office_id);
+  const delivered = (msg.delivered_office_ids || []);
+  const read = (msg.read_office_ids || []);
+  const allDelivered = recipients.length > 0 && recipients.every(r => delivered.includes(r));
+  const allRead = recipients.length > 0 && recipients.every(r => read.includes(r));
+  if (allRead) return 'read';
+  if (allDelivered) return 'delivered';
+  return 'sent';
 }
 
-function ExpandableText({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  if (!text) return null;
-  if (text.length <= 300) return <span>{text}</span>;
-  return (
-    <span>
-      {expanded ? text : text.slice(0, 300) + '... '}
-      <button className="read-more" onClick={() => setExpanded(!expanded)}>
-        {expanded ? 'Show less' : 'Read more'}
-      </button>
-    </span>
-  );
+function isMine(msg, userId) {
+  return msg.sender?.id === userId;
+}
+
+function canEditMsg(msg, userId) {
+  return msg?.can_edit && msg.sender?.id === userId && !msg.is_deleted;
 }
