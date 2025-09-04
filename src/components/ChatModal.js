@@ -1,12 +1,21 @@
-// src/components/ChatModal.js
-import { useEffect, useMemo, useRef, useState } from 'react';
+// ChatModal.jsx
+// Full React component (single-file) with filters, avatars/placeholders, and
+// search-autocomplete prepared for future backend hooking.
 
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Modal from './Modal';
 import Toast from './Toast';
 import '../styles/Chat.css';
 import { listChats, createDirectChat, createGroupChat, getChatMessages, uploadVoiceNote } from '../services/ChatApi';
 import useChatSocket from '../hooks/useChatSocket';
 import { authFetch } from '../services/FetchAuth';
+
+// NOTE: This file expands your existing ChatModal with:
+//  - left-pane filters: All | Individuals | Groups
+//  - search box with autocomplete (client-side now; ready to hook backend)
+//  - chat item avatars/placeholders (initials for individuals, group icon for groups)
+//  - group message sender info (name + avatar) shown above message bubble
+//  - minimal visual tweaks in CSS (see Chat.css appended below)
 
 function OfficePicker({ offices, selected, onToggle }) {
   return (
@@ -43,6 +52,14 @@ export default function ChatModal({ onClose, offices: officesProp }) {
   const [groupName, setGroupName] = useState('');
   const [selectedOffices, setSelectedOffices] = useState([]);
 
+  // Filters & search
+  const [filter, setFilter] = useState('all'); // all | individual | groups
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef(null);
+  const debounceRef = useRef(null);
+
   // message composer
   const [input, setInput] = useState('');
   const [recording, setRecording] = useState(false);
@@ -77,7 +94,6 @@ export default function ChatModal({ onClose, offices: officesProp }) {
           }
         } else if (t === 'chat.message.read') {
           if (activeChat && evt.chat_id === activeChat.id) {
-            // no need to fetch; we can mark read for office
             setMessages((prev) => prev.map(m => {
               if (m.sender?.office_id !== myOfficeId && m.id <= evt.up_to_message_id) {
                 const setIds = new Set(m.read_office_ids || []);
@@ -319,6 +335,132 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     setMessages(prev => prev.filter(m => m.id !== msg.id));
   };
 
+  // ---- Search/autocomplete logic (frontend-first; ready to hook backend) ----
+  // helper: build suggestion items from chats
+  const buildSuggestions = (q) => {
+    if (!q) return [];
+    const lower = q.toLowerCase();
+    const filtered = chats.filter(c => {
+      if (filter === 'individual' && c.is_group) return false;
+      if (filter === 'groups' && !c.is_group) return false;
+      // match chat name, participant names, or last message
+      if (c.is_group && c.name && c.name.toLowerCase().includes(lower)) return true;
+      if (!c.is_group) {
+        // direct chat - try participants' names
+        const parts = (c.participants || []).map(p => p.name || ((p.first_name||'') + ' ' + (p.last_name||''))).join(' ');
+        if (parts.toLowerCase().includes(lower)) return true;
+      }
+      if (c.last_message && c.last_message.content && c.last_message.content.toLowerCase().includes(lower)) return true;
+      return false;
+    });
+    return filtered.slice(0, 8);
+  };
+
+  // Simulated backend search: kept as function to replace when real API exists
+  const searchChats = async (q) => {
+    // FUTURE: call backend endpoint like `/api/chats/search?q=${encodeURIComponent(q)}&type=${filter}`
+    // const res = await fetch(`/api/chats/search?q=${encodeURIComponent(q)}&type=${filter}`);
+    // return await res.json();
+
+    // For now, do local suggestions
+    return buildSuggestions(q);
+  };
+
+  useEffect(() => {
+    if (!searchQuery) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    // debounce
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await searchChats(searchQuery);
+        setSuggestions(res);
+        setShowSuggestions(true);
+      } catch (e) {
+        // ignore search errors for now
+      }
+    }, 220);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    // eslint-disable-next-line
+  }, [searchQuery, filter, chats]);
+
+  // click outside suggestions to close
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (!searchRef.current) return;
+      if (!searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  }, []);
+
+  // ---- Derived chat list according to filter & search query ----
+  const filteredChats = useMemo(() => {
+    let list = [...chats];
+    if (filter === 'individual') list = list.filter(c => !c.is_group);
+    if (filter === 'groups') list = list.filter(c => c.is_group);
+    // if searchQuery is present, prefer suggestions (quick local search)
+    if (searchQuery) {
+      const lower = searchQuery.toLowerCase();
+      list = list.filter(c => {
+        if (c.is_group && c.name && c.name.toLowerCase().includes(lower)) return true;
+        const participantsText = (c.participants || []).map(p => (p.name || (p.first_name + ' ' + p.last_name))).join(' ').toLowerCase();
+        if (participantsText.includes(lower)) return true;
+        if (c.last_message && c.last_message.content && c.last_message.content.toLowerCase().includes(lower)) return true;
+        return false;
+      });
+    }
+    return list;
+  }, [chats, filter, searchQuery]);
+
+  // ---- Avatar & placeholder helpers ----
+  const avatarColors = [ '#6C5CE7','#00B894','#0984E3','#FD79A8','#E17055','#00CEC9','#A29BFE' ];
+  function pickColor(seed) {
+    if (!seed) return avatarColors[0];
+    let sum = 0; for (let i=0;i<seed.length;i++) sum += seed.charCodeAt(i);
+    return avatarColors[sum % avatarColors.length];
+  }
+  function getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  }
+
+  function ChatAvatar({ chat, size = 40 }) {
+    // Chat object can be group or direct
+    if (chat.is_group) {
+      // if group has avatar url -> show it
+      if (chat.avatar_url) return <img className="chat-avatar" src={chat.avatar_url} alt={chat.name || 'Group'} style={{ width: size, height: size }} />;
+      // otherwise a composed group icon with initials of group name
+      const name = chat.name || 'Group';
+      return (
+        <div className="chat-avatar avatar-generated" style={{ width: size, height: size, background: pickColor(name) }}>
+          <svg viewBox="0 0 24 24" width={size*0.6} height={size*0.6} aria-hidden>
+            <path fill="#fff" d="M16 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zM8 13c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zM18 13c-.29 0-.62.02-.97.06C17.46 14.12 18 15.5 18 17v2h4v-2.5c0-2.33-4.67-3.5-4-3.5z"/>
+          </svg>
+        </div>
+      );
+    }
+
+    // direct chat: show participant avatar (other person)
+    const other = (chat.participants || []).find(p => p.id !== userInfo?.id) || (chat.participants && chat.participants[0]);
+    const displayName = other?.name || ((other?.first_name||'') + ' ' + (other?.last_name||'')) || 'User';
+    if (other?.avatar_url) return <img className="chat-avatar" src={other.avatar_url} alt={displayName} style={{ width: size, height: size }} />;
+
+    return (
+      <div className="chat-avatar avatar-generated" style={{ width: size, height: size, background: pickColor(displayName) }}>
+        <span className="avatar-initials">{getInitials(displayName)}</span>
+      </div>
+    );
+  }
+
+  // left pane content
   const leftPane = (
     <div className="chat-left">
       <div className="chat-left-header">
@@ -329,32 +471,68 @@ export default function ChatModal({ onClose, offices: officesProp }) {
         </div>
       </div>
 
+      {/* Filters & search */}
+      <div className="chat-filters-search">
+        <div className="filter-row">
+          <button className={`filter-btn ${filter==='all'?'active':''}`} onClick={() => setFilter('all')}>All</button>
+          <button className={`filter-btn ${filter==='individual'?'active':''}`} onClick={() => setFilter('individual')}>Individuals</button>
+          <button className={`filter-btn ${filter==='groups'?'active':''}`} onClick={() => setFilter('groups')}>Groups</button>
+        </div>
+
+        <div className="search-wrap" ref={searchRef}>
+          <input
+            className="input search-input"
+            placeholder={`Search ${filter==='all' ? 'all chats' : filter}`} 
+            value={searchQuery}
+            onFocus={() => { if (suggestions.length) setShowSuggestions(true); }}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          {showSuggestions && suggestions && suggestions.length > 0 && (
+            <div className="search-suggestions">
+              {suggestions.map(s => (
+                <div key={s.id} className="suggestion-item" onClick={() => { setSearchQuery(''); setShowSuggestions(false); openChat(s); }}>
+                  <div className="sugg-left"><ChatAvatar chat={s} size={36} /></div>
+                  <div className="sugg-mid">
+                    <div className="sugg-title">{s.is_group ? (s.name || 'Group') : ((s.participants||[]).filter(p=>p.id!==userInfo?.id).map(p=>p.name).join(', ') || 'Direct')}</div>
+                    <div className="sugg-sub">{s.last_message ? (s.last_message.content || (s.last_message.voice_note ? '🎤 Voice note' : '')) : 'No messages yet'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {view === 'chats' && (
         <div className="chat-list">
           {loadingChats && <div className="loading">Loading chats...</div>}
-          {chats.map((c) => (
+          {filteredChats.map((c) => (
             <div
               key={c.id}
               className={`chat-list-item ${activeChat && activeChat.id === c.id ? 'active' : ''}`}
               onClick={() => openChat(c)}
             >
-              <div className="cli-title">
-                <span className="cli-name">{c.is_group ? (c.name || 'Group') : 'Direct chat'}</span>
-              </div>
-              <div className="cli-preview">
-                {c.last_message ? (
-                  <>
-                    <span className="cli-sender">
-                      {c.last_message.sender.first_name}:
-                    </span>
-                    <span className="cli-text">
-                      {c.last_message.is_deleted ? 'Message deleted' : (c.last_message.content || (c.last_message.voice_note ? '🎤 Voice note' : ''))}
-                    </span>
-                    <span className="cli-time">{c.last_message.ago}</span>
-                  </>
-                ) : (
-                  <span className="cli-text empty">No messages yet</span>
-                )}
+              <div className="cli-left"><ChatAvatar chat={c} size={48} /></div>
+              <div className="cli-main">
+                <div className="cli-title">
+                  <span className="cli-name">{c.is_group ? (c.name || 'Group') : ((c.participants||[]).filter(p => p.id !== userInfo?.id).map(p => p.name).join(', ') || 'Direct chat')}</span>
+                </div>
+                <div className="cli-preview">
+                  {c.last_message ? (
+                    <>
+                      <span className="cli-sender">
+                        {c.last_message.sender?.first_name ? `${c.last_message.sender.first_name}` : (c.last_message.sender?.name || '')}{c.is_group && ':'}
+                      </span>
+                      <span className="cli-text">
+                        {c.last_message.is_deleted ? 'Message deleted' : (c.last_message.content || (c.last_message.voice_note ? '🎤 Voice note' : ''))}
+                      </span>
+                      <span className="cli-time">{c.last_message.ago}</span>
+                    </>
+                  ) : (
+                    <span className="cli-text empty">No messages yet</span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -391,6 +569,7 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     </div>
   );
 
+  // right pane content
   const rightPane = (
     <div className="chat-right">
       {activeChat ? (
@@ -412,9 +591,36 @@ export default function ChatModal({ onClose, offices: officesProp }) {
               const status = mine ? computeStatus(m) : null;
               const canEdit = canEditMsg(m);
               const showReadMore = m.content && m.content.length > 300;
+
               return (
                 <div key={m.id || m.temp_id} className={`msg-row ${side}`}>
+                  {!mine && activeChat.is_group && (
+                    <div className="group-sender-col">
+                      <div className="group-sender-avatar">
+                        {/* show sender avatar */}
+                        {m.sender ? (
+                          m.sender.avatar_url ? (
+                            <img src={m.sender.avatar_url} alt={m.sender.first_name || m.sender.name} />
+                          ) : (
+                            <div className="avatar-generated small" style={{ background: pickColor(m.sender.name || (m.sender.first_name+' '+m.sender.last_name)) }}>
+                              <span className="avatar-initials small">{getInitials(m.sender.name || (m.sender.first_name+' '+m.sender.last_name))}</span>
+                            </div>
+                          )
+                        ) : (
+                          <div className="avatar-generated small" style={{ background: '#c1c1c1' }}>
+                            <span className="avatar-initials small">?</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className={`msg-bubble ${mine ? 'mine' : 'theirs'}`}>
+                    {/* show sender name above bubble in groups */}
+                    {!mine && activeChat.is_group && (
+                      <div className="group-sender-name">{m.sender ? (m.sender.first_name ? `${m.sender.first_name} ${m.sender.last_name || ''}` : m.sender.name) : 'Unknown'}</div>
+                    )}
+
                     {m.is_deleted ? (
                       <div className="deleted-text">This message was deleted</div>
                     ) : (
@@ -521,3 +727,4 @@ function ExpandableText({ text }) {
     </span>
   );
 }
+

@@ -479,3 +479,54 @@
 .office-picker::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/*
+  --- Additional CSS to add to your existing Chat.css ---
+  Append or merge the following styles into ../styles/Chat.css
+*/
+
+/* ===== Chat avatars & search suggestions ===== */
+
+/* avatar base */
+.chat-avatar { border-radius: 8px; object-fit: cover; display: inline-block; }
+.avatar-generated { display:flex; align-items:center; justify-content:center; color: #fff; font-weight:700; border-radius:8px; }
+.avatar-initials { font-size: 0.95rem; }
+.avatar-generated.small { width:36px; height:36px; border-radius:6px; }
+.avatar-initials.small { font-size:0.7rem; }
+
+.cli-left { margin-right:12px; display:flex; align-items:center; }
+.cli-main { flex:1; min-width:0; }
+
+/* filters & search */
+.chat-filters-search { padding: 8px 0 12px 0; border-bottom: 1px solid #eef2f6; }
+.filter-row { display:flex; gap:8px; margin-bottom:8px; }
+.filter-btn { padding:6px 10px; border-radius:12px; border:1px solid #e9ecef; background:#fff; cursor:pointer; }
+.filter-btn.active { background:var(--secondary-color); color:#fff; border-color:var(--secondary-color); }
+.search-wrap { position:relative; }
+.search-input { padding-right:12px; }
+.search-suggestions { position:absolute; left:0; right:0; background:#fff; border:1px solid #e9ecef; border-radius:8px; margin-top:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); z-index:50; max-height:280px; overflow:auto; }
+.suggestion-item { display:flex; gap:8px; padding:8px; align-items:center; cursor:pointer; }
+.suggestion-item:hover { background:#f8f9fa; }
+.sugg-left { width:40px; }
+.sugg-mid { flex:1; min-width:0; }
+.sugg-title { font-weight:600; }
+.sugg-sub { font-size:0.85rem; color:#6c757d; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* group sender column (left of message bubble) */
+.group-sender-col { width:56px; display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
+.group-sender-avatar img { width:40px; height:40px; border-radius:6px; object-fit:cover; }
+.group-sender-avatar .avatar-generated.small { width:40px; height:40px; border-radius:6px; }
+.group-sender-name { font-weight:600; font-size:0.85rem; margin-bottom:6px; color:#2c3e50; }
+
+/* adjust message rows with sender column */
+.msg-row { align-items:flex-start; }
+.msg-row.left .msg-bubble { margin-left:8px; }
+.msg-row.right .msg-bubble { margin-right:8px; }
+
+/* shrink action buttons when group sender column exists */
+.msg-actions { top: -8px; }
+
+/* small tweak to cli-preview so last-message sender appears naturally */
+.cli-preview .cli-sender::after { content: ''; }
+
+/* end of appended css */
