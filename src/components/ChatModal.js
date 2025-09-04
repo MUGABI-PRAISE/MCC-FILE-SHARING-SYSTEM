@@ -487,8 +487,12 @@ export default function ChatModal({ onClose, offices: officesProp }) {
       onClose();
      }}>
       <div className="chat-modal">
-        {leftPane}
-        {rightPane}
+        <div className="chat-left-container">
+          {leftPane}
+        </div>
+        <div className="chat-right-container">
+          {rightPane}
+        </div>
       </div>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </Modal>
