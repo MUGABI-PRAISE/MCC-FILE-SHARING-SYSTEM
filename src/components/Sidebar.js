@@ -20,8 +20,8 @@ const Sidebar = ({ activeTab, onTabChange}) => {
   const navItems = [
     { icon: <FaHome size={18} />, label: "Recent", tab: "recent" },
     { icon: <FaPaperPlane size={18} />, label: "Sent", tab: "sent" },
-    { icon: <FaInbox size={18} />, label: "Received", tab: "received", badge: true },
-    { icon: <FaFolder size={18} />, label: "My Files", tab: "files" },
+    { icon: <FaInbox size={18} />, label: "Received", tab: "received", badge: false },
+    // { icon: <FaFolder size={18} />, label: "My Files", tab: "files" },
   ];
 
   // Navigation items at the bottom (profile/settings/logout)
