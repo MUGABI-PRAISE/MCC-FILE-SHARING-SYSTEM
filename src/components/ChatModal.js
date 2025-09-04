@@ -25,6 +25,49 @@ function OfficePicker({ offices, selected, onToggle }) {
   );
 }
 
+// Add a new component for chat avatars
+function ChatAvatar({ chat, size = 40 }) {
+  if (chat.is_group) {
+    // Group chat placeholder - multiple people icon
+    return (
+      <div 
+        className="chat-avatar group-avatar"
+        style={{ width: size, height: size }}
+      >
+        👥
+      </div>
+    );
+  } else {
+    // Sample userInfo object structure
+    const userInfo = {
+      id: 123,
+      first_name: "John",
+      last_name: "Doe",
+      email: "john.doe@example.com",
+      office: {
+        id: 456,
+        name: "New York Office"
+      }
+    };
+
+// How to store it in localStorage
+localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    // Individual chat - first letter of the other participant's name
+    const otherParticipant = chat.participants?.find(p => p.id !== userInfo?.id);
+    const displayName = otherParticipant?.name || 'U';
+    const initial = displayName.charAt(0).toUpperCase();
+    
+    return (
+      <div 
+        className="chat-avatar individual-avatar"
+        style={{ width: size, height: size }}
+      >
+        {initial}
+      </div>
+    );
+  }
+}
+
 export default function ChatModal({ onClose, offices: officesProp }) {
   const token = localStorage.getItem('token');
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -42,6 +85,12 @@ export default function ChatModal({ onClose, offices: officesProp }) {
   const [view, setView] = useState('chats'); // chats | newDirect | newGroup
   const [groupName, setGroupName] = useState('');
   const [selectedOffices, setSelectedOffices] = useState([]);
+  
+  // NEW STATE: Filters and search
+  const [filter, setFilter] = useState('all'); // all, individual, groups
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   // message composer
   const [input, setInput] = useState('');
@@ -50,6 +99,7 @@ export default function ChatModal({ onClose, offices: officesProp }) {
   const chunksRef = useRef([]);
 
   const bottomRef = useRef(null);
+  const searchRef = useRef(null);
 
   const { subscribe, unsubscribe, sendMessage, editMessage, deleteMessageForAll, deleteMessageForMe, readUpTo } =
     useChatSocket(token, {
@@ -113,6 +163,46 @@ export default function ChatModal({ onClose, offices: officesProp }) {
         }
       }
     });
+
+  // NEW: Filter chats based on selected filter
+  const filteredChats = useMemo(() => {
+    let result = chats;
+    
+    // Apply type filter
+    if (filter === 'individual') {
+      result = result.filter(chat => !chat.is_group);
+    } else if (filter === 'groups') {
+      result = result.filter(chat => chat.is_group);
+    }
+    
+    // Apply search filter if there's a query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(chat => {
+        if (chat.is_group) {
+          // For groups, search in name and participants
+          return chat.name?.toLowerCase().includes(query) || 
+                 chat.participants?.some(p => p.name.toLowerCase().includes(query));
+        } else {
+          // For individual chats, search in participant names
+          return chat.participants?.some(p => 
+            p.id !== userInfo?.id && p.name.toLowerCase().includes(query)
+          );
+        }
+      });
+    }
+    
+    return result;
+  }, [chats, filter, searchQuery, userInfo?.id]);
+
+  // NEW: Handle search input changes
+  useEffect(() => {
+    if (searchQuery) {
+      setShowSearchResults(true);
+    } else {
+      setShowSearchResults(false);
+    }
+  }, [searchQuery]);
 
   function upsertMessage(prev, evtPayload) {
     const exists = prev.some(m => m.id === evtPayload.id);
@@ -319,6 +409,17 @@ export default function ChatModal({ onClose, offices: officesProp }) {
     setMessages(prev => prev.filter(m => m.id !== msg.id));
   };
 
+  // NEW: Handle search input
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // NEW: Clear search
+  const clearSearch = () => {
+    setSearchQuery('');
+    setShowSearchResults(false);
+  };
+
   const leftPane = (
     <div className="chat-left">
       <div className="chat-left-header">
@@ -329,35 +430,90 @@ export default function ChatModal({ onClose, offices: officesProp }) {
         </div>
       </div>
 
+      {/* NEW: Search bar */}
+      <div className="chat-search-container">
+        <input
+          ref={searchRef}
+          type="text"
+          className="chat-search-input"
+          placeholder="Search chats..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+        {searchQuery && (
+          <button className="chat-search-clear" onClick={clearSearch}>
+            ×
+          </button>
+        )}
+      </div>
+
+      {/* NEW: Filter buttons */}
+      <div className="chat-filters">
+        <button 
+          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          All
+        </button>
+        <button 
+          className={`filter-btn ${filter === 'individual' ? 'active' : ''}`}
+          onClick={() => setFilter('individual')}
+        >
+          Individual
+        </button>
+        <button 
+          className={`filter-btn ${filter === 'groups' ? 'active' : ''}`}
+          onClick={() => setFilter('groups')}
+        >
+          Groups
+        </button>
+      </div>
+
       {view === 'chats' && (
         <div className="chat-list">
           {loadingChats && <div className="loading">Loading chats...</div>}
-          {chats.map((c) => (
-            <div
-              key={c.id}
-              className={`chat-list-item ${activeChat && activeChat.id === c.id ? 'active' : ''}`}
-              onClick={() => openChat(c)}
-            >
-              <div className="cli-title">
-                <span className="cli-name">{c.is_group ? (c.name || 'Group') : 'Direct chat'}</span>
-              </div>
-              <div className="cli-preview">
-                {c.last_message ? (
-                  <>
-                    <span className="cli-sender">
-                      {c.last_message.sender.first_name}:
-                    </span>
-                    <span className="cli-text">
-                      {c.last_message.is_deleted ? 'Message deleted' : (c.last_message.content || (c.last_message.voice_note ? '🎤 Voice note' : ''))}
-                    </span>
-                    <span className="cli-time">{c.last_message.ago}</span>
-                  </>
-                ) : (
-                  <span className="cli-text empty">No messages yet</span>
-                )}
-              </div>
+          {filteredChats.length === 0 ? (
+            <div className="no-chats-message">
+              {searchQuery ? 'No matching chats found' : `No ${filter === 'all' ? '' : filter} chats`}
             </div>
-          ))}
+          ) : (
+            filteredChats.map((c) => (
+              <div
+                key={c.id}
+                className={`chat-list-item ${activeChat && activeChat.id === c.id ? 'active' : ''}`}
+                onClick={() => openChat(c)}
+              >
+                {/* NEW: Chat avatar */}
+                <ChatAvatar chat={c} size={48} />
+                
+                <div className="cli-content">
+                  <div className="cli-title">
+                    <span className="cli-name">
+                      {c.is_group 
+                        ? (c.name || 'Group') 
+                        : (c.participants?.find(p => p.id !== userInfo?.id)?.name || 'Unknown')
+                      }
+                    </span>
+                  </div>
+                  <div className="cli-preview">
+                    {c.last_message ? (
+                      <>
+                        <span className="cli-sender">
+                          {c.last_message.sender.first_name}:
+                        </span>
+                        <span className="cli-text">
+                          {c.last_message.is_deleted ? 'Message deleted' : (c.last_message.content || (c.last_message.voice_note ? '🎤 Voice note' : ''))}
+                        </span>
+                        <span className="cli-time">{c.last_message.ago}</span>
+                      </>
+                    ) : (
+                      <span className="cli-text empty">No messages yet</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 
@@ -396,6 +552,8 @@ export default function ChatModal({ onClose, offices: officesProp }) {
       {activeChat ? (
         <>
           <div className="chat-right-header">
+            {/* NEW: Chat avatar in header */}
+            <ChatAvatar chat={activeChat} size={40} />
             <div className="title">
               {activeChat.is_group ? (activeChat.name || 'Group') : 'Direct chat'}
               <div className="subtitle">
@@ -414,6 +572,13 @@ export default function ChatModal({ onClose, offices: officesProp }) {
               const showReadMore = m.content && m.content.length > 300;
               return (
                 <div key={m.id || m.temp_id} className={`msg-row ${side}`}>
+                  {/* NEW: Show sender name in group chats */}
+                  {activeChat.is_group && !mine && (
+                    <div className="msg-sender-name">
+                      {m.sender?.first_name} {m.sender?.last_name}
+                    </div>
+                  )}
+                  
                   <div className={`msg-bubble ${mine ? 'mine' : 'theirs'}`}>
                     {m.is_deleted ? (
                       <div className="deleted-text">This message was deleted</div>

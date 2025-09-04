@@ -479,3 +479,134 @@
 .office-picker::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+/* Add these styles to your Chat.css file */
+
+/* Chat avatar styles */
+.chat-avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.group-avatar {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.individual-avatar {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* Search container */
+.chat-search-container {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.chat-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  padding-right: 32px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.chat-search-input:focus {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+.chat-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6c757d;
+}
+
+.chat-search-clear:hover {
+  color: var(--accent-color);
+}
+
+/* Filter buttons */
+.chat-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e9ecef;
+  background: #fff;
+  border-radius: 18px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+  background: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+.filter-btn:hover:not(.active) {
+  background: #f8f9fa;
+}
+
+/* Chat list item with avatar */
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 2s ease;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+}
+
+.chat-list-item:hover {
+  background: #fff;
+  border-color: #e9ecef;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.chat-list-item.active {
+  background: rgba(52,152,219,0.1);
+  border-color: var(--secondary-color);
+}
+
+.cli-content {
+  flex: 1;
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Sender name in group messages */
+.msg-sender-name {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 4px;
+  margin-left: 12px;
+}
+
+/* No chats message */
+.no-chats-message {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
