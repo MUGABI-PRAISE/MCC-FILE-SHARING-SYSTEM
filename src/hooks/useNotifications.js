@@ -17,6 +17,7 @@ export default function useNotifications(token, onEvent) {
   useEffect(() => {
     if (!token || wsRef.current) return; // ⛔ prevent multiple sockets
 
+    console.log(`SOCKET PATH: ${process.env.REACT_APP_WS_BASE_URL}`);
     const wsUrl = `${process.env.REACT_APP_WS_BASE_URL}/ws/notifications/?token=${token}`;
     const socket = new WebSocket(wsUrl);
     wsRef.current = socket;
