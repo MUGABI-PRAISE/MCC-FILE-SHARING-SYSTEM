@@ -564,9 +564,9 @@
 .new-msg-badge { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); background: #2c3e50; color:#fff; padding:8px 12px; border-radius:18px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.12); z-index:40; }
 
 /* emoji picker */
-/* .emoji-picker { position: absolute; bottom: 74px; left: 16px; background:#fff; border:1px solid #e9ecef; border-radius:8px; padding:8px; display:flex; gap:6px; flex-wrap:wrap; box-shadow:0 10px 30px rgba(0,0,0,0.08); z-index:60; }
+.emoji-picker { position: absolute; bottom: 74px; left: 16px; background:#fff; border:1px solid #e9ecef; border-radius:8px; padding:8px; display:flex; gap:6px; flex-wrap:wrap; box-shadow:0 10px 30px rgba(0,0,0,0.08); z-index:60; }
 .emoji-btn { background:transparent; border:none; font-size:20px; padding:6px; cursor:pointer; }
-.emoji-toggle { border:none; background:transparent; font-size:20px; cursor:pointer; } */
+.emoji-toggle { border:none; background:transparent; font-size:20px; cursor:pointer; }
 
 /* adjust message bubble shadow to be more visible (example) */
 /* .msg-bubble { box-shadow: 0 4px 10px rgba(0,0,0,0.08); } */
@@ -579,52 +579,36 @@
 
 /* end of appended css */
 
-/* === Emoji Picker Styling === */
-.emoji-picker {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); /* grid layout */
-  gap: 8px;
-  padding: 12px;
-  height: 240px;                        /* FIX: force fixed height */
-  overflow-y: auto !important;          /* ensure scroll works */
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
-}
 
-/* Emoji buttons */
-.emoji-btn {
-  font-size: 22px;
-  padding: 8px;
+/* EMOJI PICKER */
+/* EmojiPicker.css */
+
+/* .emoji-picker {
+  display: flex;
+  flex-wrap: wrap;          /* wrap emojis into multiple lines 
+  gap: 6px;                 /* spacing between emojis 
+  padding: 10px;
+  max-height: 300px;        /* limit height of picker 
+  overflow-y: auto;         /* vertical scroll 
+  background: #fff;         /* modal background/
+  border: 1px solid #ccc;   /* optional border /
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* optional shadow /
+} */
+
+/* .emoji-btn {
+  font-size: 20px;
+  padding: 6px;
   border: none;
   background: transparent;
-  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease;
-  text-align: center;
+  border-radius: 10px;
+  transition: background 0.2s;
 }
 
 .emoji-btn:hover {
-  background: #f5f5f5;
-}
-
-/* Scrollbar */
-.emoji-picker::-webkit-scrollbar {
-  width: 6px;
-}
-.emoji-picker::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-.emoji-picker::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-
+  background: #f0f0f0;
+} */
 
 /*  
   these were added while updating the caht componetn in the finalizing of the project
@@ -703,11 +687,11 @@
 /* composer */
 .chat-composer { display:flex; gap:8px; padding:12px; align-items:center; border-top:1px solid #f3f3f3; }
 .composer-input { flex:1; padding:10px; border-radius:10px; border:1px solid #e6e6e6; }
-/* .emoji-toggle { background:none; border:none; font-size:20px; cursor:pointer; }
+.emoji-toggle { background:none; border:none; font-size:20px; cursor:pointer; }
 .emoji-container { position:relative; z-index:80; }
 .emoji-picker-persistent { position:absolute; bottom:56px; left:8px; background:#fff; border-radius:8px; padding:8px; display:flex; flex-wrap:wrap; gap:6px; box-shadow:0 8px 20px rgba(0,0,0,0.08); max-width:280px; }
 .emoji-btn { background:none; border-radius:6px; font-size:18px; padding:6px; border:1px solid transparent; cursor:pointer; }
-.emoji-btn:hover { background:#f5f5f5; } */
+.emoji-btn:hover { background:#f5f5f5; }
 
 /* voice recorder */
 .mic-btn { background:none; border:none; cursor:pointer; padding:8px; font-size:18px; }
