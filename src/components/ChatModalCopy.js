@@ -3,7 +3,7 @@
 // -----------------------------
 // Main ChatModal component
 // -----------------------------
-export default function ChatModal({ onClose, offices: officesProp }) {
+export default function ChatModalCopy({ onClose, offices: officesProp }) {
   // Auth context (from local storage like your original file)
   const token = localStorage.getItem('token');
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');

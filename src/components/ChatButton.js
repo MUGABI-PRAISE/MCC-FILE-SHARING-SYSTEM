@@ -1,7 +1,8 @@
 // ChatButton.js
 import { useEffect, useState } from 'react';
 import '../styles/ChatButton.css';
-import ChatModal from './ChatModal';
+import ChatModal from './chat/ChatModal';
+
 
 export default function ChatButton({ offices, initialTotalUnread = 0 }) {
   const [open, setOpen] = useState(false);
